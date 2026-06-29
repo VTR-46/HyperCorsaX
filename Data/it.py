@@ -1,30 +1,30 @@
 import socket
 import threading
 import time
+from collections import deque
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtWidgets
 
 HOST = 'localhost'
 PORT = 5000
+MAX_PONTOS = 200
 
-# Histórico completo dos dados recebidos
+# Buffer circular
 dados = {
-    'speed': [0.0],
-    'rpm': [0.0],
-    'gas': [0.0],
-    'brake': [0.0],
-    'fuel': [0.0],
-    'steer': [0.0],
-    'accG_x': [0.0],
-    'accG_y': [0.0],
-    'tyre_FL': [0.0],
-    'tyre_FR': [0.0],
-    'tyre_RL': [0.0],
-    'tyre_RR': [0.0],
-    'tempo': [0.0]
+    'speed': deque(maxlen=MAX_PONTOS),
+    'rpm': deque(maxlen=MAX_PONTOS),
+    'gas': deque(maxlen=MAX_PONTOS),
+    'brake': deque(maxlen=MAX_PONTOS),
+    'fuel': deque(maxlen=MAX_PONTOS),
+    'steer': deque(maxlen=MAX_PONTOS),
+    'accG_x': deque(maxlen=MAX_PONTOS),
+    'accG_y': deque(maxlen=MAX_PONTOS),
+    'tyre_FL': deque(maxlen=MAX_PONTOS),
+    'tyre_FR': deque(maxlen=MAX_PONTOS),
+    'tyre_RL': deque(maxlen=MAX_PONTOS),
+    'tyre_RR': deque(maxlen=MAX_PONTOS),
+    'tempo': deque(maxlen=MAX_PONTOS)
 }
-
-dados_lock = threading.Lock()
 
 # Conectar ao C
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,28 +41,24 @@ def atualizar_dados():
     buffer_recebido = ""
     while True:
         try:
-            data = sock.recv(2048).decode(errors='ignore')
-            if not data:
-                time.sleep(0.01)
-                continue
-
-            with dados_lock:
+            data = sock.recv(2048).decode()
+            if data:
                 buffer_recebido += data
-
+                
                 while '\n' in buffer_recebido:
                     linha, buffer_recebido = buffer_recebido.split('\n', 1)
                     linha = linha.strip()
-
+                    
                     if not linha or not (linha[0].isdigit() or linha[0] == '-'):
                         continue
-
+                    
                     valores = linha.split(',')
                     if len(valores) == 15:
                         (speed, rpm, gear, gas, brake, fuel, steer, drs,
                          gx, gy, gz, tyre_rl, tyre_rr, tyre_fl, tyre_fr) = map(float, valores)
-
+                        
                         agora = time.time() - inicio
-
+                        
                         dados['speed'].append(speed)
                         dados['rpm'].append(rpm)
                         dados['gas'].append(gas)
@@ -107,11 +103,12 @@ def criar_grafico(titulo):
     return p
 
 # --- LINHA 1 ---
-p_vel = criar_grafico("Velocidade")
+p_vel = criar_grafico("Velocidade e RPM")
 curva_vel = p_vel.plot(pen=pg.mkPen('#FF6B6B', width=2), name='Velocidade')
 
-p_rpm = criar_grafico("RPM")
-curva_rpm = p_rpm.plot(pen=pg.mkPen('#4ECDC4', width=2), name='RPM')
+
+p_rpm = criar_grafico("Velocidade e RPM")
+curva_rpm = p_rpm.plot(pen=pg.mkPen('#4ECDC4', width=2), name='RPM/100')
 
 p_pedais = criar_grafico("Pedais")
 p_pedais.setYRange(-0.1, 1.1) # Pedais vão de 0 a 1
@@ -144,40 +141,26 @@ curva_volante = p_volante.plot(pen=pg.mkPen('#FD79A8', width=2), name='Volante')
 # ATUALIZAÇÃO DOS GRÁFICOS (QTimer)
 # ---------------------------------------------------------
 def atualizar_graficos():
-    with dados_lock:
-        t = list(dados['tempo'])
-        speed = list(dados['speed'])
-        rpm = list(dados['rpm'])
-        gas = list(dados['gas'])
-        brake = list(dados['brake'])
-        acc_g_x = list(dados['accG_x'])
-        acc_g_y = list(dados['accG_y'])
-        tyre_fl = list(dados['tyre_FL'])
-        tyre_fr = list(dados['tyre_FR'])
-        tyre_rl = list(dados['tyre_RL'])
-        tyre_rr = list(dados['tyre_RR'])
-        fuel = list(dados['fuel'])
-        steer = list(dados['steer'])
-
+    t = list(dados['tempo'])
     if not t: return
 
     # Atualiza dados das curvas
-    curva_vel.setData(t, speed)
-    curva_rpm.setData(t, rpm)
+    curva_vel.setData(t, list(dados['speed']))
+    curva_rpm.setData(t, list(dados['rpm']))
     
-    curva_gas.setData(t, gas)
-    curva_freio.setData(t, brake)
+    curva_gas.setData(t, list(dados['gas']))
+    curva_freio.setData(t, list(dados['brake']))
     
-    curva_gx.setData(t, acc_g_x)
-    curva_gy.setData(t, acc_g_y)
+    curva_gx.setData(t, list(dados['accG_x']))
+    curva_gy.setData(t, list(dados['accG_y']))
     
-    curva_tfl.setData(t, tyre_fl)
-    curva_tfr.setData(t, tyre_fr)
-    curva_trl.setData(t, tyre_rl)
-    curva_trr.setData(t, tyre_rr)
+    curva_tfl.setData(t, list(dados['tyre_FL']))
+    curva_tfr.setData(t, list(dados['tyre_FR']))
+    curva_trl.setData(t, list(dados['tyre_RL']))
+    curva_trr.setData(t, list(dados['tyre_RR']))
     
-    curva_comb.setData(t, fuel)
-    curva_volante.setData(t, steer)
+    curva_comb.setData(t, list(dados['fuel']))
+    curva_volante.setData(t, list(dados['steer']))
 
 # Timer que chama a função de atualização a cada 50ms (20 FPS)
 timer = QtCore.QTimer()
