@@ -56,7 +56,7 @@ int main()
         if (tem_dados)
         {
             // Dados reais do Assetto Corsa
-            sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%d,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f\n",
+            sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%d,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n",
                     physics->speedKmh,
                     (float)physics->rpms,
                     physics->gear - 1,
@@ -68,10 +68,14 @@ int main()
                     physics->accG[0],
                     physics->accG[1],
                     physics->accG[2],
-                    physics->TyreCoreTemp[0],
-                    physics->TyreCoreTemp[1],
-                    physics->TyreCoreTemp[2],
-                    physics->TyreCoreTemp[3]);
+                    physics->tyreCoreTemp[0],
+                    physics->tyreCoreTemp[1],
+                    physics->tyreCoreTemp[2],
+                    physics->tyreCoreTemp[3],
+                    physics->brakeTemp[0],
+                    physics->brakeTemp[1],
+                    physics->brakeTemp[2],
+                    physics->brakeTemp[3]);
         }
 
         // Enviar para o Python
@@ -82,12 +86,12 @@ int main()
             break;
         }
         
-
+        //TESTES/VISUALIZAÇAO
         if (tem_dados)
         {
-            printf("Vel: %.2f km/h | Marcha: %d | RPM: %.0f | Acel: %.1f%% | Freio: %.1f%% | Comb: %.1fL  \r",
+            printf("Vel: %.2f km/h | Marcha: %d | RPM: %.0f | Acel: %.1f%% | Freio: %.1f%% | Comb: %.1fL | TEMPP: %.1f \r",
                    physics->speedKmh, physics->gear - 1, (float)physics->rpms,
-                   physics->gas * 100, physics->brake * 100, physics->fuel);
+                   physics->gas * 100, physics->brake * 100, physics->fuel, physics->brakeTemp[0] );    //teste
         }
         else
         {

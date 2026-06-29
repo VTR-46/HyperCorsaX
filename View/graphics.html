@@ -56,6 +56,73 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
+        .meter-panel {
+            width: 90vw;
+            max-width: 1200px;
+            margin-top: 20px;
+            background-color: #1e1e1e;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .meter-title {
+            margin: 0 0 12px 0;
+            color: #d9d9d9;
+            font-size: 1rem;
+        }
+        .meter-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .meter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .meter-box {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #141414 0%, #0f0f0f 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+        }
+        .meter-fill {
+            width: 100%;
+            height: 0%;
+            border-radius: 10px 10px 0 0;
+            transition: height 0.15s linear, background-color 0.15s linear;
+        }
+        .meter-label {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #bdbdbd;
+            line-height: 1.2;
+        }
+        .meter-value {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        @media (max-width: 1100px) {
+            .meter-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 650px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .meter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
@@ -71,6 +138,52 @@
         </div>
         <div class="chart-container">
             <canvas id="pedalsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="meter-panel">
+        <h3 class="meter-title">Freios e Pneus</h3>
+        <div class="meter-grid">
+            <div class="meter">
+                <div class="meter-box"><div id="brakeFLFill" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
+                <div class="meter-label">Freio FL</div>
+                <div id="brakeFLValue" class="meter-value">0%</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="brakeFRFill" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
+                <div class="meter-label">Freio FR</div>
+                <div id="brakeFRValue" class="meter-value">0%</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="brakeRLFIll" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
+                <div class="meter-label">Freio RL</div>
+                <div id="brakeRLValue" class="meter-value">0%</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="brakeRRFIll" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
+                <div class="meter-label">Freio RR</div>
+                <div id="brakeRRValue" class="meter-value">0%</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="tyreFLFill" class="meter-fill" style="background: linear-gradient(180deg, #ffeaa7, #f9ca24);"></div></div>
+                <div class="meter-label">Pneu FL</div>
+                <div id="tyreFLValue" class="meter-value">0°C</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="tyreFRFill" class="meter-fill" style="background: linear-gradient(180deg, #c7b9ff, #6c5ce7);"></div></div>
+                <div class="meter-label">Pneu FR</div>
+                <div id="tyreFRValue" class="meter-value">0°C</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="tyreRLFIll" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #ff6b6b);"></div></div>
+                <div class="meter-label">Pneu RL</div>
+                <div id="tyreRLValue" class="meter-value">0°C</div>
+            </div>
+            <div class="meter">
+                <div class="meter-box"><div id="tyreRRFIll" class="meter-fill" style="background: linear-gradient(180deg, #a7f3ff, #4ecdc4);"></div></div>
+                <div class="meter-label">Pneu RR</div>
+                <div id="tyreRRValue" class="meter-value">0°C</div>
+            </div>
         </div>
     </div>
 
@@ -153,8 +266,22 @@
             options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
         });
 
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+        const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
+            const normalized = ((value - min) / (max - min)) * 100;
+            const percent = clamp(normalized, 0, 100);
+            const fill = document.getElementById(fillId);
+            const label = document.getElementById(valueId);
+            if (!fill || !label) return;
+            fill.style.height = percent + '%';
+            fill.style.background = `linear-gradient(180deg, ${lowColor}, ${highColor})`;
+            label.innerText = `${value.toFixed(1)}${suffix}`;
+        };
+
         // conecta ao servidor Python via WebSocket
         const ws = new WebSocket('ws://localhost:8765');
+        
 
         ws.onmessage = function(event) {
             const data = JSON.parse(event.data);
@@ -167,6 +294,35 @@
             
             pedalsChart.data.datasets[0].data.push({ x: t, y: data.gas });
             pedalsChart.data.datasets[1].data.push({ x: t, y: data.brake });
+
+            const updateMeter = (fillId, valueId, value, min, max, suffix, color1, color2, color3 = null) => {  // CORES DOS FREIOS
+            const normalized = ((value - min) / (max - min)) * 100;
+            const percent = clamp(normalized, 0, 100);
+            const fill = document.getElementById(fillId);
+            const label = document.getElementById(valueId);
+            if (!fill || !label) return;
+            
+            fill.style.height = percent + '%';
+            
+            // Se você mandar 3 cores, ele usa as 3. Se mandar 2, ele usa 2.
+            if (color3) {
+                fill.style.background = `linear-gradient(180deg, ${color1}, ${color2}, ${color3})`;
+            } else {
+                fill.style.background = `linear-gradient(180deg, ${color1}, ${color2})`;
+            }
+            
+            label.innerText = `${value.toFixed(1)}${suffix}`;
+        };
+
+// Alterado de (0, 1, '%') para (0, 600, '°C')
+            updateMeter('brakeFLFill', 'brakeFLValue', data.brakeFL ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');  //manter por hora
+            updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');
+            updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');
+            updateMeter('brakeRRFIll', 'brakeRRValue', data.brakeRR ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');
+            updateMeter('tyreFLFill', 'tyreFLValue', data.tyreFL ?? 0, 40, 120, '°C', '#ffeaa7', '#f9ca24');
+            updateMeter('tyreFRFill', 'tyreFRValue', data.tyreFR ?? 0, 40, 120, '°C', '#c7b9ff', '#6c5ce7');
+            updateMeter('tyreRLFIll', 'tyreRLValue', data.tyreRL ?? 0, 40, 120, '°C', '#ffb86b', '#ff6b6b');
+            updateMeter('tyreRRFIll', 'tyreRRValue', data.tyreRR ?? 0, 40, 120, '°C', '#a7f3ff', '#4ecdc4');
 
             // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
             if (autoScroll) {
@@ -182,7 +338,12 @@
             // Atualiza os gráficos de forma mais leve (o 'none' var evitar recálculos desnecessários de layout)
             speedChart.update('none');
             pedalsChart.update('none');
+
+            
+            
         };
+
+        
 
         ws.onopen = () => console.log("Conectado à telemetria!");
         ws.onerror = (e) => console.error("Erro no WebSocket:", e);
