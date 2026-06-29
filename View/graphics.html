@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperCorsaX - Web Telemetry (Histórico)</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding-top: 20px;
+        }
+        .header {
+            width: 90vw;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn-scroll {
+            background-color: #00B894;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-scroll.off {
+            background-color: #FF6B6B;
+            color: white;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 90vw;
+            max-width: 1200px;
+        }
+        .chart-container {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>HYPERCORSA - Telemetria em Tempo Real</h2>
+        <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+    </div>
+
+    <div class="dashboard">
+        <div class="chart-container">
+            <canvas id="speedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="pedalsChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let autoScroll = true;
+        const janelaTempo = 15; // Quantos segundos mostrar na tela por padrão
+        const startTime = Date.now();
+
+        // Quando o usuário interagir com o gráfico (arrastar/zoom) desliga o Auto-Scroll
+        const pausarAutoScroll = () => {
+            if (autoScroll) {
+                autoScroll = false;
+                const btn = document.getElementById('btnAutoScroll');
+                btn.innerText = "Auto-Scroll: DESLIGADO (Ver Histórico)";
+                btn.classList.add('off');
+            }
+        };
+
+        // Função do botão para voltar ao tempo real
+        window.toggleAutoScroll = () => {
+            autoScroll = true;
+            const btn = document.getElementById('btnAutoScroll');
+            btn.innerText = "Auto-Scroll: LIGADO";
+            btn.classList.remove('off');
+        };
+
+        // performance e zoom
+        const commonOptions = {
+            animation: false,
+            parsing: false, // ideal
+            normalized: true,
+            responsive: true,
+            elements: { point: { radius: 0 } },
+            scales: {
+                x: {
+                    type: 'linear', // Eixo X (segundos)
+                    title: { display: true, text: 'Tempo de Sessão (s)', color: '#888' },
+                    ticks: { color: '#888' },
+                    grid: { color: '#333' }
+                },
+                y: { grid: { color: '#333' }, ticks: { color: '#888' } }
+            },
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x', // Permite arrastar apenas na horizontal
+                        onPanStart: pausarAutoScroll
+                    },
+                    zoom: {
+                        wheel: { enabled: true },
+                        pinch: { enabled: true },
+                        mode: 'x', // Permite zoom apenas na horizontal
+                        onZoomStart: pausarAutoScroll
+                    }
+                }
+            }
+        };
+
+        // Gráfico de Velocidade
+        const ctxSpeed = document.getElementById('speedChart').getContext('2d');
+        const speedChart = new Chart(ctxSpeed, {
+            type: 'line',
+            data: {
+                datasets: [{ label: 'Velocidade (km/h)', data: [], borderColor: '#FF6B6B', borderWidth: 2 }]
+            },
+            options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 300, ...commonOptions.scales.y } } }
+        });
+
+        // Grafico de Pedais
+        const ctxPedals = document.getElementById('pedalsChart').getContext('2d');
+        const pedalsChart = new Chart(ctxPedals, {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: 'Acelerador', data: [], borderColor: '#00FF37', borderWidth: 2 },
+                    { label: 'Freio', data: [], borderColor: '#E74C3C', borderWidth: 2 }
+                ]
+            },
+            options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
+        });
+
+        // conecta ao servidor Python via WebSocket
+        const ws = new WebSocket('ws://localhost:8765');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            // calcula o tempo atual em segundos desde o início da conexão
+            const t = (Date.now() - startTime) / 1000; 
+
+            // adiciona os dados no formato que estou enviando {x, y}
+            speedChart.data.datasets[0].data.push({ x: t, y: data.speed });
+            
+            pedalsChart.data.datasets[0].data.push({ x: t, y: data.gas });
+            pedalsChart.data.datasets[1].data.push({ x: t, y: data.brake });
+
+            // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
+            if (autoScroll) {
+                const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
+                
+                speedChart.options.scales.x.min = minX;
+                speedChart.options.scales.x.max = t;
+                
+                pedalsChart.options.scales.x.min = minX;
+                pedalsChart.options.scales.x.max = t;
+            }
+
+            // Atualiza os gráficos de forma mais leve (o 'none' var evitar recálculos desnecessários de layout)
+            speedChart.update('none');
+            pedalsChart.update('none');
+        };
+
+        ws.onopen = () => console.log("Conectado à telemetria!");
+        ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+    </script>
+</body>
+</html>
