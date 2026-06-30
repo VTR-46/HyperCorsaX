@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HyperCorsaX - Web Telemetry (Histórico)</title>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="../View/Style/wb.css">
 
 </head>
+
 <body>
 
     <div class="header">
@@ -31,43 +33,76 @@
     <div class="meter-panel">
         <h3 class="meter-title">Freios e Pneus</h3>
         <div class="meter-grid">
-            <div class="meter">
-                <div class="meter-box"><div id="brakeFLFill" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
-                <div class="meter-label">Freio FL</div>
-                <div id="brakeFLValue" class="meter-value">0%</div>
-            </div>
-            <div class="meter">
-                <div class="meter-box"><div id="brakeFRFill" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
-                <div class="meter-label">Freio FR</div>
-                <div id="brakeFRValue" class="meter-value">0%</div>
-            </div>
-            <div class="meter">
-                <div class="meter-box"><div id="brakeRLFIll" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
-                <div class="meter-label">Freio RL</div>
-                <div id="brakeRLValue" class="meter-value">0%</div>
-            </div>
-            <div class="meter">
-                <div class="meter-box"><div id="brakeRRFIll" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div></div>
-                <div class="meter-label">Freio RR</div>
-                <div id="brakeRRValue" class="meter-value">0%</div>
-            </div>
-            <div class="meter">
-                <div class="meter-box"><div id="tyreFLFill" class="meter-fill" style="background: linear-gradient(180deg, #ffeaa7, #f9ca24);"></div></div>
+
+            <div class="meter-esquerda">
+                <div class="meter-box">
+                    <div id="tyreFLFill" class="meter-fill"
+                        style="background: linear-gradient(180deg, #ffeaa7, #f9ca24);"></div>
+                </div>
                 <div class="meter-label">Pneu FL</div>
                 <div id="tyreFLValue" class="meter-value">0°C</div>
             </div>
-            <div class="meter">
-                <div class="meter-box"><div id="tyreFRFill" class="meter-fill" style="background: linear-gradient(180deg, #c7b9ff, #6c5ce7);"></div></div>
+            <div class="meter-esquerda">
+                <div class="meter-box-freio">
+                    <div id="brakeFLFill" class="meter-fill"
+                        style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div>
+                </div>
+                <div class="meter-label">Freio FL</div>
+                <div id="brakeFLValue" class="meter-value">0%</div>
+            </div>
+            <div class="meter-direita">
+                <div class="meter-box-freio">
+                    <div id="brakeFRFill" class="meter-fill"
+                        style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div>
+                </div>
+                <div class="meter-label">Freio FR</div>
+                <div id="brakeFRValue" class="meter-value">0%</div>
+            </div>
+
+            <div class="meter-direita">
+                <div class="meter-box">
+                    <div id="tyreFRFill" class="meter-fill"
+                        style="background: linear-gradient(180deg, #c7b9ff, #6c5ce7);"></div>
+                </div>
                 <div class="meter-label">Pneu FR</div>
                 <div id="tyreFRValue" class="meter-value">0°C</div>
             </div>
-            <div class="meter">
-                <div class="meter-box"><div id="tyreRLFIll" class="meter-fill" style="background: linear-gradient(180deg, #ffb86b, #ff6b6b);"></div></div>
+
+            
+
+            <div class="meter-esquerda">
+                <div class="meter-box">
+                    <div id="tyreRLFIll" class="meter-fill"
+                        style="background: linear-gradient(180deg, #ffb86b, #ff6b6b);"></div>
+                </div>
                 <div class="meter-label">Pneu RL</div>
                 <div id="tyreRLValue" class="meter-value">0°C</div>
             </div>
-            <div class="meter">
-                <div class="meter-box"><div id="tyreRRFIll" class="meter-fill" style="background: linear-gradient(180deg, #a7f3ff, #4ecdc4);"></div></div>
+
+            <div class="meter-esquerda">
+                <div class="meter-box-freio">
+                    <div id="brakeRLFIll" class="meter-fill"
+                        style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div>
+                </div>
+                <div class="meter-label">Freio RL</div>
+                <div id="brakeRLValue" class="meter-value">0%</div>
+            </div>
+            <div class="meter-direita">
+                <div class="meter-box-freio">
+                    <div id="brakeRRFIll" class="meter-fill"
+                        style="background: linear-gradient(180deg, #ffb86b, #e74c3c);"></div>
+                </div>
+                <div class="meter-label">Freio RR</div>
+                <div id="brakeRRValue" class="meter-value">0%</div>
+            </div>
+
+
+
+            <div class="meter-direita">
+                <div class="meter-box">
+                    <div id="tyreRRFIll" class="meter-fill"
+                        style="background: linear-gradient(180deg, #a7f3ff, #4ecdc4);"></div>
+                </div>
                 <div class="meter-label">Pneu RR</div>
                 <div id="tyreRRValue" class="meter-value">0°C</div>
             </div>
@@ -75,4 +110,5 @@
     </div>
     <script src="../View/JS/wbScript.js"></script>
 </body>
+
 </html>
