@@ -1,66 +1,11 @@
-typedef struct {
-    int packetId;
-    float gas;
-    float brake;
-    float fuel;         
-    int gear;
-    int rpms;
-    float steerAngle;   
-    float speedKmh;     
-    float velocity[3];  
-    float accG[3];  
-    float wheelSlip[4];  
-    float wheelLoad[4];  
-    float wheelPressure[4] ; 
-    float wheelAngularSpeed[4]; 
-    float tyreWear[4];  
-    float tyreDirtyLevel[4];  
-    float TyreCoreTemp[4]; 
-    float camberRAD[4];  
-    float suspensionTravel[4];  
-    float drs;  
-    float tc;
-    float heading;
-    float pitch;
-    float roll;
-    float cgHeight;
-    float carDamage[5];
-    int numberOfTyresOut;
-    int pitLimiterOn;
-    float abs;
-    float kersCharge;
-    float kersInput;
-    int autoshifterOn;
-    float rideHeight[2];
-    float turboBoost;
-    float ballast;
-    float airDensity;
-    float airTemp;
-    float roadTemp;
-    float localAngularVelocity[3];
-    float finalFF;
-    float performanceMeter;
-    int engineBrake;
-    int ersRecoveryLevel;
-    int ersPowerLevel;
-    int ersHeatCharging;
-    int ersCurrentKJ;
-    float brakesBias;
-    float localVelocity[3];
-    int P2PActivations;
-    int P2PStatus;
-    int currentMaxRpm;
-    float mz[4];
-    float fx[4];
-    float fy[4];
-    float slipAngles[4];
-    float slipRatio[4];
-    float wheelsPressure[4];
-    int numCompletedLaps;
-    float tyreTemp[4];
+#ifndef ASSETTO_LIBRARY_M_H
+#define ASSETTO_LIBRARY_M_H
 
-} SPageFilePhysics;
+#include <wchar.h>
 
+// ---------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------
 typedef enum {
     AC_OFF = 0,
     AC_REPLAY = 1,
@@ -101,7 +46,100 @@ typedef enum {
     AC_TIME_PENALTY = 6
 } AC_PENALTY_TYPE;
 
-// Estrutura principal Graphic
+// ---------------------------------------------------------
+// ESTRUTURA 1: PHYSICS (Física e Telemetria do Carro)
+// ---------------------------------------------------------
+typedef struct {
+    int packetId;
+    float gas;
+    float brake;
+    float fuel;         
+    int gear;
+    int rpms;
+    float steerAngle;   
+    float speedKmh;     
+    float velocity[3];  
+    float accG[3];  
+    float wheelSlip[4];  
+    float wheelLoad[4];  
+    float wheelsPressure[4]; 
+    float wheelAngularSpeed[4]; 
+    float tyreWear[4];  
+    float tyreDirtyLevel[4];  
+    float tyreCoreTemp[4]; 
+    float camberRAD[4];  
+    float suspensionTravel[4];  
+    float drs;  
+    float tc;
+    float heading;
+    float pitch;
+    float roll;
+    float cgHeight;
+    float carDamage[5];
+    int numberOfTyresOut;
+    int pitLimiterOn;
+    float abs;
+    float kersCharge;
+    float kersInput;
+    int autoShifterOn;
+    float rideHeight[2];
+    float turboBoost;
+    float ballast;
+    float airDensity;
+    float airTemp;
+    float roadTemp;
+    float localAngularVel[3];
+    float finalFF;
+    float performanceMeter;
+    
+    int engineBrake;
+    int ersRecoveryLevel;
+    int ersPowerLevel;
+    int ersHeatCharging;
+    int ersIsCharging;
+    float kersCurrentKJ;
+    
+    int drsAvailable;
+    int drsEnabled;
+    
+    float brakeTemp[4]; 
+    float clutch;
+    
+    float tyreTempI[4];
+    float tyreTempM[4];
+    float tyreTempO[4];
+    
+    int isAIControlled;
+    
+    float tyreContactPoint[4][3];
+    float tyreContactNormal[4][3];
+    float tyreContactHeading[4][3];
+    
+    float brakeBias;
+    
+    float localVelocity[3];
+    
+    int P2PActivations;
+    int P2PStatus;
+    
+    int currentMaxRpm;
+    
+    float mz[4];
+    float fx[4];
+    float fy[4];
+    float slipRatio[4];
+    float slipAngle[4];
+    
+    int tcinAction;
+    int absInAction;
+    float suspensionDamage[4];
+    float tyreTemp[4];
+    float waterTemp;
+} SPageFilePhysics;
+
+// ---------------------------------------------------------
+// ESTRUTURA 2: GRAPHICS (Dados de Sessão e UI)
+// ---------------------------------------------------------
 typedef struct {
     int packetId;
     AC_STATUS status;
@@ -141,4 +179,59 @@ typedef struct {
     float windSpeed;
     float windDirection;
 } SPageFileGraphic;
+
+// ---------------------------------------------------------
+// ESTRUTURA 3: STATIC (Dados Fixos da Sessão, Carro e Pista)
+// ---------------------------------------------------------
+typedef struct {
+    wchar_t smVersion[15];
+    wchar_t acVersion[15];
+    int numberOfSessions;
+    int numCars;
+    wchar_t carModel[33];
+    wchar_t track[33];
+    wchar_t playerName[33];
+    wchar_t playerSurname[33];
+    wchar_t playerNick[33];
+    int sectorCount;
+    float maxTorque;
+    float maxPower;
+    int maxRpm;
+    float maxFuel;
+    float suspensionMaxTravel[4];
+    float tyreRadius[4];
+    float maxTurboBoost;
     
+    float deprecated_1; // Campos obsoletos na API
+    float deprecated_2;
+    
+    int penaltiesEnabled;
+    float aidFuelRate;
+    float aidTireRate;
+    float aidMechanicalDamage;
+    int aidAllowTyreBlankets;
+    float aidStability;
+    int aidAutoClutch;
+    int aidAutoBlip;
+    
+    int hasDRS;
+    int hasERS;
+    int hasKERS;
+    float kersMaxJ;
+    int engineBrakeSettingsCount;
+    int ersPowerControllerCount;
+    float trackSPlineLength;
+    wchar_t trackConfiguration[33];
+    float ersMaxJ;
+    
+    int isTimedRace;
+    int hasExtraLap;
+    
+    wchar_t carSkin[33];
+    int reversedGridPositions;
+    int PitWindowStart;
+    int PitWindowEnd;
+    int isOnline;
+} SPageFileStatic;
+
+#endif // ASSETTO_LIBRARY_M_H
