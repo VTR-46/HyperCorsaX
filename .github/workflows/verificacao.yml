@@ -1,0 +1,24 @@
+name: Verificacao Automatica
+
+# 1. Quando essa verificação deve rodar?
+on:
+  push:
+    branches: [ "main", "master" ] # Roda sempre que você enviar um commit para a main/master
+
+# 2. O que o GitHub deve fazer?
+jobs:
+  verificar-codigo:
+    # Cria um computador virtual com Linux (Ubuntu)
+    runs-on: ubuntu-latest
+
+    # 3. Passo a passo que o robô vai executar
+    steps:
+      # Passo A: O robô baixa uma cópia do seu código para dentro do computador virtual
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      # Passo B: Aqui é onde a verificação real acontece
+      - name: Rodar testes ou verificações
+        run: |
+          echo "O GitHub baixou seu código com sucesso!"
+          echo "Substitua estas linhas de 'echo' pelos comandos reais de teste do seu projeto (ex: npm test, pytest, etc)."
