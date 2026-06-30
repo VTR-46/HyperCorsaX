@@ -125,13 +125,13 @@ body {
 
 .meter-label {
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 20px;
     color: #bdbdbd;
     line-height: 1.2;
 }
 
 .meter-value {
-    font-size: 0.8rem;
+    font-size: 20px;
     font-weight: bold;
     color: #ffffff;
 }
