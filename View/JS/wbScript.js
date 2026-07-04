@@ -78,6 +78,42 @@ const pedalsChart = new Chart(ctxPedals, {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+const hexToRgb = (hex) => {
+    const normalized = hex.replace('#', '');
+    const size = normalized.length === 3 ? 1 : 2;
+    const expand = size === 1 ? normalized.split('').map((part) => part + part).join('') : normalized;
+    const number = parseInt(expand, 16);
+
+    return {
+        r: (number >> 16) & 255,
+        g: (number >> 8) & 255,
+        b: number & 255,
+    };
+};
+
+const rgbToHex = (r, g, b) => {
+    const toHex = (value) => value.toString(16).padStart(2, '0');
+    return `#${toHex(Math.round(r))}${toHex(Math.round(g))}${toHex(Math.round(b))}`;
+};
+
+const mixColor = (from, to, ratio) => {
+    const start = hexToRgb(from);
+    const end = hexToRgb(to);
+    return rgbToHex(
+        start.r + (end.r - start.r) * ratio,
+        start.g + (end.g - start.g) * ratio,
+        start.b + (end.b - start.b) * ratio
+    );
+};
+
+const getMeterColor = (percent, lowColor, idealColor, highColor) => {
+    if (percent <= 45) {
+        return mixColor(lowColor, idealColor, percent / 45);
+    }
+
+    return mixColor(idealColor, highColor, (percent - 45) / 55);
+};
+
 const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
     const normalized = ((value - min) / (max - min)) * 100;
     const percent = clamp(normalized, 0, 100);
@@ -85,7 +121,7 @@ const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highCol
     const label = document.getElementById(valueId);
     if (!fill || !label) return;
     fill.style.height = percent + '%';
-    fill.style.background = `linear-gradient(180deg, ${lowColor}, ${highColor})`;
+    fill.style.background = getMeterColor(percent, lowColor, '#33FF00', highColor);
     label.innerText = `${value.toFixed(1)}${suffix}`;
 };
 
@@ -105,7 +141,7 @@ ws.onmessage = function (event) {
     pedalsChart.data.datasets[0].data.push({ x: t, y: data.gas });
     pedalsChart.data.datasets[1].data.push({ x: t, y: data.brake });
 
-    const updateMeter = (fillId, valueId, value, min, max, suffix, color1, color2, color3 = null) => {  // CORES DOS FREIOS
+    const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
         const normalized = ((value - min) / (max - min)) * 100;
         const percent = clamp(normalized, 0, 100);
         const fill = document.getElementById(fillId);
@@ -114,25 +150,20 @@ ws.onmessage = function (event) {
 
         fill.style.height = percent + '%';
 
-        // Se você mandar 3 cores, ele usa as 3. Se mandar 2, ele usa 2.
-        if (color3) {
-            fill.style.background = `linear-gradient(180deg, ${color1}, ${color2}, ${color3})`;
-        } else {
-            fill.style.background = `linear-gradient(180deg, ${color1}, ${color2})`;
-        }
+        fill.style.background = getMeterColor(percent, lowColor, '#33FF00', highColor);
 
         label.innerText = `${value.toFixed(1)}${suffix}`;
     };
 
-    // Alterado de (0, 1, '%') para (0, 600, '°C')
-    updateMeter('brakeFLFill', 'brakeFLValue', data.brakeFL ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');  //manter por hora
-    updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');
-    updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');
-    updateMeter('brakeRRFIll', 'brakeRRValue', data.brakeRR ?? 0, 0, 1200, '°C', '#FF0000', '#33FF00', '#0004FF');
-    updateMeter('tyreFLFill', 'tyreFLValue', data.tyreFL ?? 0, 40, 120, '°C', '#ffeaa7', '#f9ca24');
-    updateMeter('tyreFRFill', 'tyreFRValue', data.tyreFR ?? 0, 40, 120, '°C', '#c7b9ff', '#6c5ce7');
-    updateMeter('tyreRLFIll', 'tyreRLValue', data.tyreRL ?? 0, 40, 120, '°C', '#ffb86b', '#ff6b6b');
-    updateMeter('tyreRRFIll', 'tyreRRValue', data.tyreRR ?? 0, 40, 120, '°C', '#a7f3ff', '#4ecdc4');
+    updateMeter('brakeFLFill', 'brakeFLValue', data.brakeFL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
+    updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
+    updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
+    updateMeter('brakeRRFIll', 'brakeRRValue', data.brakeRR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
+    updateMeter('tyreFLFill', 'tyreFLValue', data.tyreFL ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
+    updateMeter('tyreFRFill', 'tyreFRValue', data.tyreFR ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
+    updateMeter('tyreRLFIll', 'tyreRLValue', data.tyreRL ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
+    updateMeter('tyreRRFIll', 'tyreRRValue', data.tyreRR ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
+    updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
 
     // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
     if (autoScroll) {

@@ -61,6 +61,18 @@ body {
 
 }
 
+.meter-panel-2 {
+    width: 90vw;
+    max-width: 1200px;
+    margin-top: 20px;
+    background-color: #1e1e1e;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+
+}
+
 .meter-title {
     margin: 0 0 12px 0;
     color: #d9d9d9;
@@ -114,6 +126,19 @@ body {
     overflow: hidden;
     display: flex;
     align-items: flex-end;
+}
+
+.meter-box-fuel {
+    width: 100px;
+    height: 250px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #141414 0%, #0f0f0f 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    
 }
 
 .meter-fill {
