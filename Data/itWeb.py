@@ -42,6 +42,10 @@ async def enviar_telemetria(websocket):
                                 "rpm": float(valores[1]),
                                 "gas": float(valores[3]),
                                 "brake": float(valores[4]),
+                                
+                                #Combustivel
+                                "fuel": float(valores[5]),
+                                
                                 "steer": float(valores[6]),
                                 
                                 # Temperaturas dos Pneus (Índices 11 ao 14)
@@ -55,6 +59,8 @@ async def enviar_telemetria(websocket):
                                 "brakeFR": float(valores[16]),
                                 "brakeRL": float(valores[17]),
                                 "brakeRR": float(valores[18])
+                                
+                                
                             }
                             
                             # Envia para o navegador
@@ -70,9 +76,7 @@ async def enviar_telemetria(websocket):
             break # Único momento aceitável para usar o break
         except Exception as e:
             print(f"Erro inesperado: {e}")
-            # ✅ CORREÇÃO 2: Removido o 'break'. Assim, se um pacote vier corrompido, 
-            # ele apenas imprime o erro, mas o servidor continua vivo pro próximo pacote!
-            
+
         # Uma pequena pausa para não fritar a CPU (20 FPS = 0.05s)
         await asyncio.sleep(0.05)
 
