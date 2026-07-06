@@ -155,15 +155,66 @@ ws.onmessage = function (event) {
         label.innerText = `${value.toFixed(1)}${suffix}`;
     };
 
+    
+    const updateMeterTyreWear = (fillId, valueId, value, min, max, suffix) => {
+        const normalized = ((value - min) / (max - min)) * 100;
+        const percent = clamp(normalized, 0, 100);
+        const fill = document.getElementById(fillId);
+        const label = document.getElementById(valueId);
+        if (!fill || !label) return;
+
+        fill.style.height = percent + '%';
+
+        fill.style.background = getMeterColor(percent, "#F52727", '#F5CF27', '#33FF00');     //cores low, middle, high
+
+        label.innerText = `${value.toFixed(1)}${suffix}`;
+    };
+
+    const min_wear_limit = 83.0;    //ajustar (por enquanto F1 de pneus médios) atualmente 2% de direrença do CMRT
+    const max_wear_limit = 100.0;
+
+    const grip_w1 = data.tyreWFL;
+    const grip_w2 = data.tyreWFR;
+    const grip_w3 = data.tyreWRL;
+    const grip_w4 = data.tyreWRR;
+
+    const delta_escala = max_wear_limit - min_wear_limit;
+
+    let hud_w1, hud_w2, hud_w3, hud_w4;
+
+    if (delta_escala <= 0) {
+        hud_w1 = hud_w2 = hud_w3 = hud_w4 = 100;
+    } else {
+
+        const gamma = 1.5; // ajustar (por enquanto F1 de pneus médios) atualmente 2% de direrença do CMRT
+
+        function convertWear(rawWear) {
+
+            let t = (rawWear - min_wear_limit) / (100 - min_wear_limit);
+
+            t = Math.max(0, Math.min(1, t));
+
+            return Math.pow(t, gamma) * 100;
+        }
+
+
+
+        hud_w1 = convertWear(grip_w1);
+        hud_w2 = convertWear(grip_w2);
+        hud_w3 = convertWear(grip_w3);
+        hud_w4 = convertWear(grip_w4);
+    }
+
     updateMeter('brakeFLFill', 'brakeFLValue', data.brakeFL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRRFIll', 'brakeRRValue', data.brakeRR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreFLFill', 'tyreFLValue', data.tyreFL ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreFRFill', 'tyreFRValue', data.tyreFR ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreRLFIll', 'tyreRLValue', data.tyreRL ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreRRFIll', 'tyreRRValue', data.tyreRR ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
+    updateMeterTyreWear('tyreFLFill', 'tyreFLValue', hud_w1 ?? 0, 0, 100, '° %');
+    updateMeterTyreWear('tyreFRFill', 'tyreFRValue', hud_w2 ?? 0, 0, 100, ' %');
+    updateMeterTyreWear('tyreRLFIll', 'tyreRLValue', hud_w3 ?? 0, 0, 100, ' %');
+    updateMeterTyreWear('tyreRRFIll', 'tyreRRValue', hud_w4 ?? 0, 0, 100, ' %');
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
+    updateMeter('ersFill', 'ersValue', data.ersPower * 100 ?? 0, 0, 100, ' %', '#0004FF', '#FF0000');
 
     // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
     if (autoScroll) {

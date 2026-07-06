@@ -31,10 +31,9 @@ async def enviar_telemetria(websocket):
                     if not linha or not (linha[0].isdigit() or linha[0] == '-'):
                         continue
 
-                    valores = linha.split(',')
-                    
-                    # ✅ CORREÇÃO 1: Exige pelo menos 20 valores (índices de 0 a 19)
-                    if len(valores) == 19: 
+                    valores = [valor for valor in linha.split(',') if valor != '']
+
+                    if len(valores) >= 24:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -58,9 +57,18 @@ async def enviar_telemetria(websocket):
                                 "brakeFL": float(valores[15]), 
                                 "brakeFR": float(valores[16]),
                                 "brakeRL": float(valores[17]),
-                                "brakeRR": float(valores[18])
+                                "brakeRR": float(valores[18]),
                                 
+                                # ERS (Energia)
                                 
+                                "ersPower": float(valores[19]),
+                                
+                                # Desgate dos Pneus
+                                "tyreWFL": float(valores[20]),
+                                "tyreWFR": float(valores[21]),
+                                "tyreWRL": float(valores[22]),
+                                "tyreWRR": float(valores[23])                             
+                    
                             }
                             
                             # Envia para o navegador
