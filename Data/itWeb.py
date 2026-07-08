@@ -1,6 +1,7 @@
 import socket
 import json
 import asyncio
+import time
 import websockets
 
 #ASSETTO
@@ -8,11 +9,24 @@ import websockets
 HOST_AC = 'localhost'
 PORT_AC = 5000
 
+def conectar_socket():
+    while True:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((HOST_AC, PORT_AC))
+            sock.setblocking(False)
+            print("Conectado ao CorsaX! Aguardando frontend...")
+            return sock
+        except ConnectionRefusedError:
+            print("Aguardando o CorsaX.exe na porta 5000...")
+            time.sleep(1)
+        except OSError as erro:
+            print(f"Falha ao conectar no CorsaX: {erro}")
+            time.sleep(1)
+
+
 # Conecta ao servidor C do Assetto Corsa
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect((HOST_AC, PORT_AC))
-sock.setblocking(False)
-print("Conectado ao CorsaX! Aguardando frontend...")
+sock = conectar_socket()
 
 async def enviar_telemetria(websocket):
     buffer_recebido = ""
@@ -33,7 +47,7 @@ async def enviar_telemetria(websocket):
 
                     valores = [valor for valor in linha.split(',') if valor != '']
 
-                    if len(valores) >= 24:
+                    if len(valores) >= 29:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -67,7 +81,14 @@ async def enviar_telemetria(websocket):
                                 "tyreWFL": float(valores[20]),
                                 "tyreWFR": float(valores[21]),
                                 "tyreWRL": float(valores[22]),
-                                "tyreWRR": float(valores[23])                             
+                                "tyreWRR": float(valores[23]),
+
+                                # Dano do carro
+                                "carDamageF": float(valores[24]),
+                                "carDamageD": float(valores[25]),
+                                "carDamageT": float(valores[26]),
+                                "carDamageE": float(valores[27]),
+                                "carDamageG": float(valores[28])
                     
                             }
                             

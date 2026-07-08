@@ -125,12 +125,52 @@ const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highCol
     label.innerText = `${value.toFixed(1)}${suffix}`;
 };
 
+const damageSlots = {
+    frente: 'frente-dano',
+    esquerda: 'esquerda-dano',
+    direita: 'direita-dano',
+    frenteBaixa: 'traseira-dano',
+    geral: 'geral-dano',
+};
+
+const updateDamageZone = (zoneId, value) => {
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
+
+    const valueNode = zoneId === 'geral-dano'
+        ? zone.querySelector('.damage-value-general')
+        : zone.querySelector('.damage-value');
+    const percent = clamp(Number(value ?? 0), 0, 100);
+    zone.style.color = getMeterColor(percent, '#33FF00', '#F5CF27', '#FF3B30');
+    zone.style.borderColor = getMeterColor(percent, '#1F7A1F', '#B48A10', '#B3261E');
+
+    if (valueNode) {
+        valueNode.innerText = `${percent.toFixed(0)}%`;
+    }
+};
+
+const updateDamageMap = (data) => {
+    const damageValues = [
+        data.carDamageF ?? data.damage0 ?? 0,
+        data.carDamageT ?? data.damage1 ?? 0,
+        data.carDamageE ?? data.damage2 ?? 0,
+        data.carDamageD ?? data.damage3 ?? 0,
+        data.carDamageG ?? data.damage4 ?? 0,
+    ];
+
+    Object.values(damageSlots).forEach((zoneId, index) => {
+        updateDamageZone(zoneId, damageValues[index]);
+    });
+};
+
 // conecta ao servidor Python via WebSocket
 const ws = new WebSocket('ws://localhost:8765');
 
 
 ws.onmessage = function (event) {
+    console.log("WS MSG", event.data);
     const data = JSON.parse(event.data);
+
 
     // calcula o tempo atual em segundos desde o início da conexão
     const t = (Date.now() - startTime) / 1000;
@@ -214,7 +254,8 @@ ws.onmessage = function (event) {
     updateMeterTyreWear('tyreRLFIll', 'tyreRLValue', hud_w3 ?? 0, 0, 100, ' %');
     updateMeterTyreWear('tyreRRFIll', 'tyreRRValue', hud_w4 ?? 0, 0, 100, ' %');
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
-    updateMeter('ersFill', 'ersValue', data.ersPower * 100 ?? 0, 0, 100, ' %', '#0004FF', '#FF0000');
+    updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#0004FF', '#FF0000');
+    updateDamageMap(data);
 
     // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
     if (autoScroll) {
