@@ -47,7 +47,7 @@ async def enviar_telemetria(websocket):
 
                     valores = [valor for valor in linha.split(',') if valor != '']
 
-                    if len(valores) >= 29:
+                    if len(valores) >= 33:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -88,7 +88,13 @@ async def enviar_telemetria(websocket):
                                 "carDamageD": float(valores[25]),
                                 "carDamageT": float(valores[26]),
                                 "carDamageE": float(valores[27]),
-                                "carDamageG": float(valores[28])
+                                "carDamageG": float(valores[28]),
+                                
+                                #Pressao dos Pneus
+                                "tyrePressureFL" :float(valores[29]),
+                                "tyrePressureFR" :float(valores[30]),
+                                "tyrePressureRL" :float(valores[31]),
+                                "tyrePressureRR" :float(valores[32])
                     
                             }
                             

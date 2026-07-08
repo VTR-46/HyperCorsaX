@@ -125,6 +125,11 @@ const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highCol
     label.innerText = `${value.toFixed(1)}${suffix}`;
 };
 
+const updateOnlyValue = (valueId, value, suffix) => {
+    const label = document.getElementById(valueId);
+    label.innerText = `${value.toFixed(1)}${suffix}`;
+};
+
 const damageSlots = {
     frente: 'frente-dano',
     esquerda: 'esquerda-dano',
@@ -255,6 +260,11 @@ ws.onmessage = function (event) {
     updateMeterTyreWear('tyreRRFIll', 'tyreRRValue', hud_w4 ?? 0, 0, 100, ' %');
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
     updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#0004FF', '#FF0000');
+    updateOnlyValue('tyrePsiValueFL', data.tyrePressureFL ?? 0, ' psi');
+    updateOnlyValue('tyrePsiValueFR', data.tyrePressureFR ?? 0, ' psi');
+    updateOnlyValue('tyrePsiValueRL', data.tyrePressureRL ?? 0, ' psi');
+    updateOnlyValue('tyrePsiValueRR', data.tyrePressureRR ?? 0, ' psi');
+
     updateDamageMap(data);
 
     // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
