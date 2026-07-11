@@ -187,8 +187,8 @@ const storedPeak = sessionStorage.getItem('ac_peak_wear');
 const peakWear = storedPeak ? JSON.parse(storedPeak) : { FL: 0, FR: 0, RL: 0, RR: 0 };
 
 // O delta de queda física. 
-const WEAR_DROP_CLIFF = 27.0;
-const GAMMA_WEAR = 3.0;
+const WEAR_DROP_CLIFF = 22.5;
+const GAMMA_WEAR = 5.0;
 
 function getNormalizedWear(currentWear, tireKey) {
     if (currentWear > peakWear[tireKey]) {
@@ -264,6 +264,11 @@ ws.onmessage = function (event) {
     updateOnlyValue('tyrePsiValueFR', data.tyrePressureFR ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueRL', data.tyrePressureRL ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueRR', data.tyrePressureRR ?? 0, ' psi');
+
+     updateOnlyValue('tyrePsiValueFL', data.tyreFL ?? 0, ' °C');
+     updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
+     updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
+     updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
 
     updateDamageMap(data);
 

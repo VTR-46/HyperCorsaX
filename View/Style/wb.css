@@ -101,6 +101,79 @@ body {
     align-items: center;
 }
 
+.meter-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.meter-values-top,
+.meter-values-bottom {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.meter-bars {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.meter-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    align-items: center;
+    justify-items: center;
+}
+
+.meter-pair {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.meter-column-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    text-align: center;
+}
+
+.meter-top-left,
+.meter-top-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.meter-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.meter-box-compact {
+    width: 50px;
+    height: 100px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #141414 0%, #0f0f0f 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+}
+
 .meter-direita {
     display: flex;
     flex-direction: column;
