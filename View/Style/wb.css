@@ -216,6 +216,15 @@ body {
     align-items: flex-end;
 }
 
+.meter-esquerda .meter-box-freio {
+    left: 0px;
+}
+
+.meter-direita .meter-box-freio {
+    right: 0px;
+}
+
+
 .meter-box-fuel {
     width: 100px;
     height: 250px;
@@ -418,4 +427,21 @@ body {
     .meter-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+.headerSectionT{
+
+    width: 90vw;
+    max-width: 1200px;
+    margin-top: 20px;
+    background-color: #1e1e1e;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+}
+
+.headerSectionT img{
+
+
 }
