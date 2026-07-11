@@ -110,7 +110,6 @@ const getMeterColor = (percent, lowColor, idealColor, highColor) => {
     if (percent <= 45) {
         return mixColor(lowColor, idealColor, percent / 45);
     }
-
     return mixColor(idealColor, highColor, (percent - 45) / 55);
 };
 
@@ -125,47 +124,155 @@ const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highCol
     label.innerText = `${value.toFixed(1)}${suffix}`;
 };
 
-// conecta ao servidor Python via WebSocket
+const updateMeterTyreWear = (fillId, valueId, value, min, max, suffix) => {
+    const normalized = ((value - min) / (max - min)) * 100;
+    const percent = clamp(normalized, 0, 100);
+    const fill = document.getElementById(fillId);
+    const label = document.getElementById(valueId);
+    if (!fill || !label) return;
+
+    fill.style.height = percent + '%';
+    fill.style.background = getMeterColor(percent, "#F52727", '#F5CF27', '#33FF00'); // cores low, middle, high
+    label.innerText = `${value.toFixed(1)}${suffix}`;
+};
+
+const updateOnlyValue = (valueId, value, suffix) => {
+    const label = document.getElementById(valueId);
+    label.innerText = `${value.toFixed(1)}${suffix}`;
+};
+
+const damageSlots = {
+    frente: 'frente-dano',
+    esquerda: 'esquerda-dano',
+    direita: 'direita-dano',
+    frenteBaixa: 'traseira-dano',
+    geral: 'geral-dano',
+};
+
+const updateDamageZone = (zoneId, value) => {
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
+
+    const valueNode = zoneId === 'geral-dano'
+        ? zone.querySelector('.damage-value-general')
+        : zone.querySelector('.damage-value');
+    const percent = clamp(Number(value ?? 0), 0, 100);
+    zone.style.color = getMeterColor(percent, '#33FF00', '#F5CF27', '#FF3B30');
+    zone.style.borderColor = getMeterColor(percent, '#1F7A1F', '#B48A10', '#B3261E');
+
+    if (valueNode) {
+        valueNode.innerText = `${percent.toFixed(0)}%`;
+    }
+};
+
+const updateDamageMap = (data) => {
+    const damageValues = [
+        data.carDamageF ?? data.damage0 ?? 0,
+        data.carDamageT ?? data.damage1 ?? 0,
+        data.carDamageE ?? data.damage2 ?? 0,
+        data.carDamageD ?? data.damage3 ?? 0,
+        data.carDamageG ?? data.damage4 ?? 0,
+    ];
+
+    Object.values(damageSlots).forEach((zoneId, index) => {
+        updateDamageZone(zoneId, damageValues[index]);
+    });
+};
+
+// ==========================================
+// CALIBRAÇÃO DINÂMICA DE PNEUS (Escopo Global)
+// ==========================================
+// Armazena o maior valor de "saúde" do pneu lido até agora na sessão.
+const storedPeak = sessionStorage.getItem('ac_peak_wear');
+const peakWear = storedPeak ? JSON.parse(storedPeak) : { FL: 0, FR: 0, RL: 0, RR: 0 };
+
+// O delta de queda física. 
+const WEAR_DROP_CLIFF = 22.5;
+const GAMMA_WEAR = 5.0;
+
+function getNormalizedWear(currentWear, tireKey) {
+    if (currentWear > peakWear[tireKey]) {
+        peakWear[tireKey] = currentWear;
+        // 3. Salva imediatamente no cofre do navegador para sobreviver ao F5
+        sessionStorage.setItem('ac_peak_wear', JSON.stringify(peakWear));
+    }
+
+    const currentPeak = peakWear[tireKey];
+
+    if (currentPeak === 0) return 100.0;
+
+    const cliff = currentPeak - WEAR_DROP_CLIFF;
+    let t = (currentWear - cliff) / (currentPeak - cliff);
+    t = Math.max(0, Math.min(1, t));
+
+    return Math.pow(t, GAMMA_WEAR) * 100;
+}
+
+// ==========================================
+// WEBSOCKET
+// ==========================================
 const ws = new WebSocket('ws://localhost:8765');
 
-
 ws.onmessage = function (event) {
+    // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
-
-    // calcula o tempo atual em segundos desde o início da conexão
     const t = (Date.now() - startTime) / 1000;
 
-    // adiciona os dados no formato que estou enviando {x, y}
-    speedChart.data.datasets[0].data.push({ x: t, y: data.speed });
+    // 1. Atualiza Arrays dos Gráficos
+    const speedData = speedChart.data.datasets[0].data;
+    const gasData = pedalsChart.data.datasets[0].data;
+    const brakeData = pedalsChart.data.datasets[1].data;
 
-    pedalsChart.data.datasets[0].data.push({ x: t, y: data.gas });
-    pedalsChart.data.datasets[1].data.push({ x: t, y: data.brake });
+    speedData.push({ x: t, y: data.speed });
+    gasData.push({ x: t, y: data.gas });
+    brakeData.push({ x: t, y: data.brake });
 
-    const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
-        const normalized = ((value - min) / (max - min)) * 100;
-        const percent = clamp(normalized, 0, 100);
-        const fill = document.getElementById(fillId);
-        const label = document.getElementById(valueId);
-        if (!fill || !label) return;
+    // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
+    const tempoLimite = t - (janelaTempo + 5); 
+    while (speedData.length > 0 && speedData[0].x < tempoLimite) {
+        speedData.shift();
+        gasData.shift();
+        brakeData.shift();
+    }
 
-        fill.style.height = percent + '%';
+    // 3. Leituras de Pneu e Normalização
+    const grip_w1 = data.tyreWFL ?? 0;
+    const grip_w2 = data.tyreWFR ?? 0;
+    const grip_w3 = data.tyreWRL ?? 0;
+    const grip_w4 = data.tyreWRR ?? 0;
 
-        fill.style.background = getMeterColor(percent, lowColor, '#33FF00', highColor);
+    const hud_w1 = getNormalizedWear(grip_w1, 'FL');
+    const hud_w2 = getNormalizedWear(grip_w2, 'FR');
+    const hud_w3 = getNormalizedWear(grip_w3, 'RL');
+    const hud_w4 = getNormalizedWear(grip_w4, 'RR');
 
-        label.innerText = `${value.toFixed(1)}${suffix}`;
-    };
-
+    // 4. Atualização de Interface
     updateMeter('brakeFLFill', 'brakeFLValue', data.brakeFL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRRFIll', 'brakeRRValue', data.brakeRR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreFLFill', 'tyreFLValue', data.tyreFL ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreFRFill', 'tyreFRValue', data.tyreFR ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreRLFIll', 'tyreRLValue', data.tyreRL ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
-    updateMeter('tyreRRFIll', 'tyreRRValue', data.tyreRR ?? 0, 40, 120, '°C', '#0004FF', '#FF0000');
+    
+    updateMeterTyreWear('tyreFLFill', 'tyreFLValue', hud_w1, 0, 100, '%');
+    updateMeterTyreWear('tyreFRFill', 'tyreFRValue', hud_w2, 0, 100, '%');
+    updateMeterTyreWear('tyreRLFIll', 'tyreRLValue', hud_w3, 0, 100, '%');
+    updateMeterTyreWear('tyreRRFIll', 'tyreRRValue', hud_w4, 0, 100, '%');
+    
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
+    updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#0004FF', '#FF0000');
+    
+    updateOnlyValue('tyrePsiValueFL', data.tyrePressureFL ?? 0, ' psi');
+    updateOnlyValue('tyrePsiValueFR', data.tyrePressureFR ?? 0, ' psi');
+    updateOnlyValue('tyrePsiValueRL', data.tyrePressureRL ?? 0, ' psi');
+    updateOnlyValue('tyrePsiValueRR', data.tyrePressureRR ?? 0, ' psi');
 
-    // se o auto-Scroll estiver ligado, move a câmera (escala X) junto com os dados
+     updateOnlyValue('tyrePsiValueFL', data.tyreFL ?? 0, ' °C');
+     updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
+     updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
+     updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
+
+    updateDamageMap(data);
+
+    // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
         const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
 
@@ -176,15 +283,9 @@ ws.onmessage = function (event) {
         pedalsChart.options.scales.x.max = t;
     }
 
-    // Atualiza os gráficos de forma mais leve (o 'none' var evitar recálculos desnecessários de layout)
     speedChart.update('none');
     pedalsChart.update('none');
-
-
-
 };
-
-
 
 ws.onopen = () => console.log("Conectado à telemetria!");
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);

@@ -1,6 +1,7 @@
 import socket
 import json
 import asyncio
+import time
 import websockets
 
 #ASSETTO
@@ -8,11 +9,24 @@ import websockets
 HOST_AC = 'localhost'
 PORT_AC = 5000
 
+def conectar_socket():
+    while True:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.connect((HOST_AC, PORT_AC))
+            sock.setblocking(False)
+            print("Conectado ao CorsaX! Aguardando frontend...")
+            return sock
+        except ConnectionRefusedError:
+            print("Aguardando o CorsaX.exe na porta 5000...")
+            time.sleep(1)
+        except OSError as erro:
+            print(f"Falha ao conectar no CorsaX: {erro}")
+            time.sleep(1)
+
+
 # Conecta ao servidor C do Assetto Corsa
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect((HOST_AC, PORT_AC))
-sock.setblocking(False)
-print("Conectado ao CorsaX! Aguardando frontend...")
+sock = conectar_socket()
 
 async def enviar_telemetria(websocket):
     buffer_recebido = ""
@@ -31,10 +45,9 @@ async def enviar_telemetria(websocket):
                     if not linha or not (linha[0].isdigit() or linha[0] == '-'):
                         continue
 
-                    valores = linha.split(',')
-                    
-                    # ✅ CORREÇÃO 1: Exige pelo menos 20 valores (índices de 0 a 19)
-                    if len(valores) == 19: 
+                    valores = [valor for valor in linha.split(',') if valor != '']
+
+                    if len(valores) >= 33:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -58,9 +71,31 @@ async def enviar_telemetria(websocket):
                                 "brakeFL": float(valores[15]), 
                                 "brakeFR": float(valores[16]),
                                 "brakeRL": float(valores[17]),
-                                "brakeRR": float(valores[18])
+                                "brakeRR": float(valores[18]),
                                 
+                                # ERS (Energia)
                                 
+                                "ersPower": float(valores[19]),
+                                
+                                # Desgate dos Pneus
+                                "tyreWFL": float(valores[20]),
+                                "tyreWFR": float(valores[21]),
+                                "tyreWRL": float(valores[22]),
+                                "tyreWRR": float(valores[23]),
+
+                                # Dano do carro
+                                "carDamageF": float(valores[24]),
+                                "carDamageD": float(valores[25]),
+                                "carDamageT": float(valores[26]),
+                                "carDamageE": float(valores[27]),
+                                "carDamageG": float(valores[28]),
+                                
+                                #Pressao dos Pneus
+                                "tyrePressureFL" :float(valores[29]),
+                                "tyrePressureFR" :float(valores[30]),
+                                "tyrePressureRL" :float(valores[31]),
+                                "tyrePressureRR" :float(valores[32])
+                    
                             }
                             
                             # Envia para o navegador

@@ -7,20 +7,20 @@
 
 int main()
 {
-    //Winsock
+    // Winsock
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
-    
+
     // socket
     SOCKET server = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr = {0};
     addr.sin_family = AF_INET;
     addr.sin_port = htons(5000);
     addr.sin_addr.s_addr = INADDR_ANY;
-    
-    bind(server, (struct sockaddr*)&addr, sizeof(addr));
+
+    bind(server, (struct sockaddr *)&addr, sizeof(addr));
     listen(server, 1);
-    
+
     printf("Aguardando Python na porta 5000...\n");
     SOCKET client = accept(server, NULL, NULL);
     printf("Python conectado!\n");
@@ -29,34 +29,34 @@ int main()
     HANDLE hMapFile = OpenFileMappingA(FILE_MAP_READ, FALSE, "Local\\acpmf_physics");
     SPageFilePhysics *physics = NULL;
     int tem_dados = 0;
-    
+
     if (hMapFile != NULL)
     {
         physics = (SPageFilePhysics *)MapViewOfFile(
             hMapFile, FILE_MAP_READ, 0, 0, sizeof(SPageFilePhysics));
-        
+
         if (physics != NULL)
         {
             tem_dados = 1;
             printf("Assetto Corsa detectado! Enviando telemetria...\n");
         }
     }
-    
+
     if (!tem_dados)
     {
         printf("AVISO: Assetto Corsa nao encontrado. Enviando dados de teste...\n");
         printf("Inicie o jogo e reinicie este programa.\n");
     }
-    
+
     char buffer[512];
     int contador = 0;
-    
+
     while (1)
     {
         if (tem_dados)
         {
             // Dados reais do Assetto Corsa
-            sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%d,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n",
+                sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%d,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,\n",
                     physics->speedKmh,
                     (float)physics->rpms,
                     physics->gear - 1,
@@ -75,7 +75,21 @@ int main()
                     physics->brakeTemp[0],
                     physics->brakeTemp[1],
                     physics->brakeTemp[2],
-                    physics->brakeTemp[3]);
+                    physics->brakeTemp[3],
+                    physics->kersCharge,
+                    physics->tyreWear[0],
+                    physics->tyreWear[1],
+                    physics->tyreWear[2],
+                    physics->tyreWear[3],
+                    physics->carDamage[0],
+                    physics->carDamage[1],
+                    physics->carDamage[2],
+                    physics->carDamage[3],
+                    physics->carDamage[4],
+                    physics->wheelsPressure[0],
+                    physics->wheelsPressure[1],
+                    physics->wheelsPressure[2],
+                    physics->wheelsPressure[3]);
         }
 
         // Enviar para o Python
@@ -85,30 +99,33 @@ int main()
             printf("\nConexao perdida com o Python.\n");
             break;
         }
-        
-        //TESTES/VISUALIZAÇAO
+
+        // TESTES/VISUALIZAÇAO
         if (tem_dados)
-        {
-            printf("Vel: %.2f km/h | Marcha: %d | RPM: %.0f | Acel: %.1f%% | Freio: %.1f%% | Comb: %.1fL | TEMPP: %.1f \r",
-                   physics->speedKmh, physics->gear - 1, (float)physics->rpms,
-                   physics->gas * 100, physics->brake * 100, physics->fuel, physics->brakeTemp[0] );    //teste
+        {           
+
+            printf("Vel: %.2f km/h W0: %.1f%% W1: %.1f%% W2: %.1f%% W3: %.1f%% W4: %.1f%% W5: %.1f%%\r",
+                   physics->speedKmh,
+                   physics->carDamage[0], physics->carDamage[1], physics->carDamage[2], physics->carDamage[3], physics->carDamage[4]); // teste
         }
         else
         {
             printf("Modo teste - sem Assetto Corsa (%d)  \r", contador);
         }
         fflush(stdout);
-        
+
         contador++;
         Sleep(16);
     }
 
     // Limpeza
-    if (physics) UnmapViewOfFile(physics);
-    if (hMapFile) CloseHandle(hMapFile);
+    if (physics)
+        UnmapViewOfFile(physics);
+    if (hMapFile)
+        CloseHandle(hMapFile);
     closesocket(client);
     closesocket(server);
     WSACleanup();
-    
+
     return 0;
 }

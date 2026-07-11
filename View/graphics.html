@@ -36,43 +36,44 @@
         <div class="meter-grid">
 
             <div class="meter-esquerda">
+                <div id="tyrePsiValueFL" class="meter-value">0 psi</div>
+                <div id="tyreTempValueFL" class="meter-value">0 °C</div>
                 <div class="meter-box">
-                    <div id="tyreFLFill" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="tyreFLFill" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Pneu FL</div>
                 <div id="tyreFLValue" class="meter-value">0°C</div>
             </div>
             <div class="meter-esquerda">
                 <div class="meter-box-freio">
-                    <div id="brakeFLFill" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="brakeFLFill" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Freio FL</div>
                 <div id="brakeFLValue" class="meter-value">0%</div>
             </div>
             <div class="meter-direita">
                 <div class="meter-box-freio">
-                    <div id="brakeFRFill" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="brakeFRFill" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Freio FR</div>
                 <div id="brakeFRValue" class="meter-value">0%</div>
             </div>
 
             <div class="meter-direita">
+                <div id="tyrePsiValueFR" class="meter-value">0 psi</div>
+                <div id="tyreTempValueFR" class="meter-value">0 °C</div>
                 <div class="meter-box">
-                    <div id="tyreFRFill" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="tyreFRFill" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Pneu FR</div>
                 <div id="tyreFRValue" class="meter-value">0°C</div>
             </div>
 
             <div class="meter-esquerda">
+                <div id="tyrePsiValueRL" class="meter-value">0 psi</div>
+                <div id="tyreTempValueRL" class="meter-value">0 °C</div>
                 <div class="meter-box">
-                    <div id="tyreRLFIll" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="tyreRLFIll" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Pneu RL</div>
                 <div id="tyreRLValue" class="meter-value">0°C</div>
@@ -80,27 +81,24 @@
 
             <div class="meter-esquerda">
                 <div class="meter-box-freio">
-                    <div id="brakeRLFIll" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="brakeRLFIll" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Freio RL</div>
                 <div id="brakeRLValue" class="meter-value">0%</div>
             </div>
             <div class="meter-direita">
                 <div class="meter-box-freio">
-                    <div id="brakeRRFIll" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="brakeRRFIll" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Freio RR</div>
                 <div id="brakeRRValue" class="meter-value">0%</div>
             </div>
 
-
-
             <div class="meter-direita">
+                <div id="tyrePsiValueRR" class="meter-value">0 psi</div>
+                <div id="tyreTempValueRR" class="meter-value">0 °C</div>
                 <div class="meter-box">
-                    <div id="tyreRRFIll" class="meter-fill"
-                        style="background: #0004FF;"></div>
+                    <div id="tyreRRFIll" class="meter-fill" style="background: #0004FF;"></div>
                 </div>
                 <div class="meter-label">Pneu RR</div>
                 <div id="tyreRRValue" class="meter-value">0°C</div>
@@ -108,14 +106,59 @@
         </div>
     </div>
 
+
+    <section id="dano-carro" class="damage-panel" aria-label="Mapa de dano do carro">
+        <h3>DANO DO CARRO</h3>
+
+        <div id="geral-dano" class="damage-zone damage-zone-rear damage-zone-outer" data-damage-zone="geral">
+            <div class="damage-map damage-map-inner">
+                <div id="frente-dano" class="damage-zone damage-zone-front-top" data-damage-zone="frente">
+                    <div class="damage-visual damage-visual-front" aria-hidden="true"></div>
+                    <span class="damage-label">Frente</span>
+                    <strong class="damage-value">0%</strong>
+                </div>
+
+                <div id="esquerda-dano" class="damage-zone damage-zone-left" data-damage-zone="esquerda">
+                    <div class="damage-visual damage-visual-left" aria-hidden="true"></div>
+                    <span class="damage-label">Esquerda</span>
+                    <strong class="damage-value">0%</strong>
+                </div>
+
+                <div id="direita-dano" class="damage-zone damage-zone-right" data-damage-zone="direita">
+                    <div class="damage-visual damage-visual-right" aria-hidden="true"></div>
+                    <span class="damage-label">Direita</span>
+                    <strong class="damage-value">0%</strong>
+                </div>
+
+                <div id="traseira-dano" class="damage-zone damage-zone-front-bottom" data-damage-zone="traseira">
+                    <div class="damage-visual damage-visual-rear" aria-hidden="true"></div>
+                    <span class="damage-label">Traseira</span>
+                    <strong class="damage-value">0%</strong>
+                </div>
+            </div>
+            <span class="geral-damage-label">Dano Geral</span>
+            <strong class="damage-value damage-value-general">0%</strong>
+        </div>
+    </section>
+
     <div class="meter-panel-2">
-        <h3>COMBUSTIVEL</h3>
+
         <div class="meter-combustivel">
+            <h3>COMBUSTIVEL</h3>
             <div class="meter-box-fuel">
                 <div id="fuelFill" class="meter-fill" style="background: #0004FF;">
                 </div>
             </div>
-            <div id="fuelValue" class="meter-value">0 L Gasolina</div>
+            <div id="fuelValue" class="meter-value">0 L</div>
+        </div>
+
+        <div class="meter-ers">
+            <h3>ERS</h3>
+            <div class="meter-box-ers">
+                <div id="ersFill" class="meter-fill" style="background: #0004FF;">
+                </div>
+            </div>
+            <div id="ersValue" class="meter-value">0 %</div>
         </div>
 
     </div>
