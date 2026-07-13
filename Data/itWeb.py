@@ -53,6 +53,7 @@ async def enviar_telemetria(websocket):
                             payload = {
                                 "speed": float(valores[0]),
                                 "rpm": float(valores[1]),
+                                "gear": int(valores[2]),
                                 "gas": float(valores[3]),
                                 "brake": float(valores[4]),
                                 

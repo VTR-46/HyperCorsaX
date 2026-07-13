@@ -464,3 +464,27 @@ body {
     text-align: center;
 
 }
+
+.bottom-dashbord{
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+
+}
+
+.rpm-dashbord{
+
+    display: flex;
+    gap: 3px;
+    align-items: center;
+
+}
+
+.rpm-block{
+    width: 100%;
+    height: 10px;
+
+    background-color: #000000;
+}

@@ -1,5 +1,5 @@
 let autoScroll = true;
-const janelaTempo = 15; // Quantos segundos mostrar na tela por padrão
+const janelaTempo = 5; // Quantos segundos mostrar na tela por padrão
 const startTime = Date.now();
 
 // Quando o usuário interagir com o gráfico (arrastar/zoom) desliga o Auto-Scroll
@@ -138,37 +138,37 @@ const updateOnlyValueTcAbs = (valueId, value, id) => {
     if (value == 5) {
         block.style.backgroundColor = '#5CF700';
         tv = 11;
-    }else if(value == 6){
+    } else if (value == 6) {
         block.style.backgroundColor = '#51DB00';
         tv = 10;
-    }else if(value > 7 && value< 8){
+    } else if (value > 7 && value < 8) {
         block.style.backgroundColor = '#46BF00';
         tv = 9;
-    }else if(value == 8){
+    } else if (value == 8) {
         block.style.backgroundColor = '#3FAD00';
         tv = 8;
-    }else if(value == 9){
+    } else if (value == 9) {
         block.style.backgroundColor = '#389C00';
         tv = 7;
-    }else if(value == 10){
+    } else if (value == 10) {
         block.style.backgroundColor = '#328C00';
         tv = 6;
-    }else if(value == 11){
+    } else if (value == 11) {
         block.style.backgroundColor = '#2D8000';
         tv = 5;
-    }else if(value == 12){
+    } else if (value == 12) {
         block.style.backgroundColor = '#246900';
         tv = 4;
-    }else if(value == 13){
+    } else if (value == 13) {
         block.style.backgroundColor = '#1C5200';
         tv = 3;
-    }else if(value > 14 && value < 15){
+    } else if (value > 14 && value < 15) {
         block.style.backgroundColor = '#154000';
         tv = 2;
-    }else if(value == 15){
+    } else if (value == 15) {
         block.style.backgroundColor = '#0D2E00';
         tv = 1;
-    }else if(value == 0){
+    } else if (value == 0) {
         block.style.backgroundColor = '#071A00';
         tv = 0;
     }
@@ -188,12 +188,122 @@ const updateSteeringWheel = (steerValue) => {
 const updateColorBlock = (value, id) => {
     const block = document.getElementById(id);
 
-    if(value > 0){
+    if (value > 0) {
         block.style.backgroundColor = '#0F8200';
     }
 
 };
 
+const updateGear = (valueId, value) => {
+    const label = document.getElementById(valueId);
+
+    if (value == 0) {
+        label.innerText = `N`;
+    } else if (value == -1) {
+        label.innerText = `R`;
+    }
+    else {
+        label.innerText = `${value}`;
+    }
+
+
+};
+
+const updateRpmDashbord = (value) => {
+
+    const rmpB1 = document.getElementById('rpm-1');
+    const rmpB2 = document.getElementById('rpm-2');
+    const rmpB3 = document.getElementById('rpm-3');
+    const rmpB4 = document.getElementById('rpm-4');
+    const rmpB5 = document.getElementById('rpm-5');
+    const rmpB6 = document.getElementById('rpm-6');
+    const rmpB7 = document.getElementById('rpm-7');
+    const rmpB8 = document.getElementById('rpm-8');
+    const rmpB9 = document.getElementById('rpm-9');
+    const rmpB10 = document.getElementById('rpm-10');
+    const rmpB11 = document.getElementById('rpm-11');
+    const rmpB12 = document.getElementById('rpm-12');
+
+
+    if (value >= 5000) {
+        rmpB1.style.backgroundColor = '#004DFF';    //azul
+        if (value >= 6000) {
+            rmpB2.style.backgroundColor = '#004DFF';
+            if (value >= 7000) {
+                rmpB3.style.backgroundColor = '#004DFF';
+                if (value >= 7500) {
+                    rmpB4.style.backgroundColor = '#004DFF';
+                    if (value >= 8000) {
+                        rmpB5.style.backgroundColor = '#FFD900'; // amaerelo
+                        if (value >= 8500) {
+                            rmpB6.style.backgroundColor = '#FFD900';
+                            if (value >= 9000) {
+                                rmpB7.style.backgroundColor = '#FFD900';
+                                if (value >= 9500) {
+                                    rmpB8.style.backgroundColor = '#FFD900';
+                                    if (value >= 10000) {
+                                        rmpB9.style.backgroundColor = '#FF0000';    // vermelho
+                                        if (value >= 10500) {
+                                            rmpB10.style.backgroundColor = '#FF0000';
+                                            if (value >= 11000) {
+                                                rmpB11.style.backgroundColor = '#FF0000';
+                                                if (value >= 12000) {
+                                                    rmpB12.style.backgroundColor = '#FF0000';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    if (value <= 5000) {
+        rmpB1.style.backgroundColor = '#000000';    //azul
+        if (value <= 6000) {
+            rmpB2.style.backgroundColor = '#000000';
+            if (value <= 7000) {
+                rmpB3.style.backgroundColor = '#000000';
+                if (value <= 7500) {
+                    rmpB4.style.backgroundColor = '#000000';
+                    if (value <= 8000) {
+                        rmpB5.style.backgroundColor = '#000000'; // amaerelo
+                        if (value <= 8500) {
+                            rmpB6.style.backgroundColor = '#000000';
+                            if (value <= 9000) {
+                                rmpB7.style.backgroundColor = '#000000';
+                                if (value <= 9500) {
+                                    rmpB8.style.backgroundColor = '#000000';
+                                    if (value <= 10000) {
+                                        rmpB9.style.backgroundColor = '#000000';    // vermelho
+                                        if (value <= 10500) {
+                                            rmpB10.style.backgroundColor = '#000000';
+                                            if (value <= 11000) {
+                                                rmpB11.style.backgroundColor = '#000000';
+                                                if (value <= 12000) {
+                                                    rmpB12.style.backgroundColor = '#000000';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+};
 
 // ==========================================
 // WEBSOCKET
@@ -215,7 +325,7 @@ ws.onmessage = function (event) {
     brakeData.push({ x: t, y: data.brake });
 
     // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
-    const tempoLimite = t - (janelaTempo + 5); 
+    const tempoLimite = t - (janelaTempo + 5);
     while (speedData.length > 0 && speedData[0].x < tempoLimite) {
         speedData.shift();
         gasData.shift();
@@ -238,6 +348,9 @@ ws.onmessage = function (event) {
     updateOnlyValue('abs-label', data.abs, ' ');
     updateOnlyValueTcAbs('tc-label', data.tc * 100, 'tc');
     updateOnlyValueTcAbs('abs-label', data.abs * 100, 'abs');
+    updateOnlyValue('speed-label', data.speed, " KM/h");
+    updateGear('gear-label', data.gear);
+    updateRpmDashbord(data.rpm);
     //updateColorBlock(data.tc, 'tc');
 
     speedChart.update('none');
