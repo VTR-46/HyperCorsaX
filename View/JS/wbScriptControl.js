@@ -308,7 +308,7 @@ const updateRpmDashbord = (value) => {
 const uptadeDrs_Aa = (value, id, valueId) => {
     const label = document.getElementById(valueId);
     const block = document.getElementById(id);
-    console.log(value);
+    //console.log(value);
     if (value == 0) {
         block.style.backgroundColor = '#000000';
         label.innerText = 'OFF';
@@ -317,6 +317,17 @@ const uptadeDrs_Aa = (value, id, valueId) => {
         label.innerText = 'ON';
     }
 
+};
+
+const updateMeterGBC = (fillId, valueId, value, min, max, suffix, color) => {
+    const normalized = ((value - min) / (max - min)) * 100;
+    const percent = clamp(normalized, 0, 100);
+    const fill = document.getElementById(fillId);
+    const label = document.getElementById(valueId);
+    if (!fill || !label) return;
+    fill.style.height = percent + '%';
+    fill.style.background = color;
+    label.innerText = `${value.toFixed(1)}${suffix}`;
 };
 
 // ==========================================
@@ -366,8 +377,11 @@ ws.onmessage = function (event) {
     updateGear('gear-label', data.gear);
     updateRpmDashbord(data.rpm);
     uptadeDrs_Aa(data.drs, 'drs', 'drs-label');
+    updateMeterGBC('gasFill', 'gasValue', data.gas * 100 ?? 0, 0, 100, ' %', '#18EB00');
+    updateMeterGBC('brakeFill', 'brakeValue', data.brake * 100 ?? 0, 0, 100, ' %', '#DE0000');
+    updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#DE0000');
     //updateColorBlock(data.tc, 'tc');
-
+    console.log(data.brake);
     speedChart.update('none');
     pedalsChart.update('none');
 };
