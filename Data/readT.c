@@ -56,7 +56,7 @@ int main()
         if (tem_dados)
         {
             // Dados reais do Assetto Corsa
-                sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%d,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%f,%f,\n",
+                sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%.2f,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%f,%f,\n",
                     physics->speedKmh,
                     (float)physics->rpms,
                     physics->gear - 1,

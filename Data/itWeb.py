@@ -99,7 +99,10 @@ async def enviar_telemetria(websocket):
                                 
                                 #Assistencia
                                 "abs": float(valores[33]),
-                                "tc": float(valores[34])
+                                "tc": float(valores[34]),
+                                
+                                #DRS
+                                "drs": float(valores[7])
                     
                             }
                             
