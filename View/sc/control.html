@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperCorsaX - CONTROLE</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+    <link rel="stylesheet" href="../Style/wb.css">
+    <link rel="stylesheet" href="../src/output.css">
+
+</head>
+
+<body>
+
+    <div class="header">
+        <h2>HYPERCORSA - Controle</h2>
+        <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+    </div>
+
+    <section id="headerSectionT" class="headerSectionT mt-5 w-[90vw] max-w-300 rounded-2xl  bg-slate-900/80 p-4">
+
+        <a href="../sc/engine.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-9500">
+            <img src="../img/engine.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">POWERTRAIN</span>
+        </a>
+        <a href="../View/sc/control.html"
+            class="group inline-flex items-center gap-3 border border-amber-300 px-4 py-2 text-slate-100 transition duration-300">
+            <img src="../img/steeringWheel.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">CONTROLE</span>
+        </a>
+
+    </section>
+
+    <br>
+
+    <div class="dashboard">
+        <div class="chart-container">
+            <h3>Velocidade</h3>
+            <canvas id="speedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Pedais</h3>
+            <canvas id="pedalsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="meter-panel-2">
+
+        <div>
+            <div class="rpm-dashbord">
+                <div class="rpm-block" id="rpm-1"></div>
+                <div class="rpm-block" id="rpm-2"></div>
+                <div class="rpm-block" id="rpm-3"></div>
+                <div class="rpm-block" id="rpm-4"></div>
+                <div class="rpm-block" id="rpm-5"></div>
+                <div class="rpm-block" id="rpm-6"></div>
+                <div class="rpm-block" id="rpm-7"></div>
+                <div class="rpm-block" id="rpm-8"></div>
+                <div class="rpm-block" id="rpm-9"></div>
+                <div class="rpm-block" id="rpm-10"></div>
+                <div class="rpm-block" id="rpm-11"></div>
+                <div class="rpm-block" id="rpm-12"></div>
+            </div>
+            <img id="steeringWheel" class="steering-wheel" src="../img/steeringWheel.png" alt="Volante">
+
+            <div class="bottom-dashbord">
+                <div>
+                    <h2 id="gear-label">0</h2>
+
+
+                </div>
+                <div>
+                    <h3 id="speed-label">0 km/h</h3>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="abs" class="as-block">
+            <p>ABS</p>
+            <p id="abs-label">0</p>
+        </div>
+
+        <div id="tc" class="as-block">
+            <p>TC</p>
+            <p id="tc-label">0</p>
+        </div>
+
+        <div id="drs" class="as-block">
+            <p>AA</p>
+            <p id="drs-label">OFF</p>
+        </div>
+
+    </div>
+
+    <div class="meter-panel-2">
+
+        <div class="meter-clutch">
+            <h3>EMBREAGEM</h3>
+            <div class="meter-box-clutch">
+                <div id="clutchFill" class="meter-fill" style="background: #0004FF;">
+                </div>
+            </div>
+            <div id="clutchValue" class="meter-value">0 %</div>
+        </div>
+
+        <div class="meter-brake">
+            <h3>FREIO</h3>
+            <div class="meter-box-brake">
+                <div id="brakeFill" class="meter-fill" style="background: #0004FF;">
+                </div>
+            </div>
+            <div id="brakeValue" class="meter-value">0 %</div>
+        </div>
+
+        <div class="meter-gas">
+            <h3>ACELERADOR</h3>
+            <div class="meter-box-gas">
+                <div id="gasFill" class="meter-fill" style="background: #0004FF;">
+                </div>
+            </div>
+            <div id="gasValue" class="meter-value">0 %</div>
+        </div>
+
+    </div>
+
+    <div class="meter-panel-2">
+
+        <div class="meter-combustivel">
+            <h3>COMBUSTIVEL</h3>
+            <div class="meter-box-fuel">
+                <div id="fuelFill" class="meter-fill" style="background: #0004FF;">
+                </div>
+            </div>
+            <div id="fuelValue" class="meter-value">0 L</div>
+        </div>
+
+        <div class="meter-ers">
+            <h3>ERS</h3>
+            <div class="meter-box-ers">
+                <div id="ersFill" class="meter-fill" style="background: #0004FF;">
+                </div>
+            </div>
+            <div id="ersValue" class="meter-value">0 %</div>
+        </div>
+
+    </div>
+
+    <script src="../JS/wbScriptControl.js"></script>
+</body>
+
+</html>

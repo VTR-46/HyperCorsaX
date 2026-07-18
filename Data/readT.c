@@ -56,7 +56,7 @@ int main()
         if (tem_dados)
         {
             // Dados reais do Assetto Corsa
-                sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%d,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,\n",
+                sprintf(buffer, "%.2f,%.0f,%d,%.4f,%.4f,%.2f,%.4f,%.2f,%.3f,%.3f,%.3f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%f,%f,%f\n",
                     physics->speedKmh,
                     (float)physics->rpms,
                     physics->gear - 1,
@@ -89,7 +89,10 @@ int main()
                     physics->wheelsPressure[0],
                     physics->wheelsPressure[1],
                     physics->wheelsPressure[2],
-                    physics->wheelsPressure[3]);
+                    physics->wheelsPressure[3],
+                    physics->abs,
+                    physics->tc,
+                    physics->clutch);
         }
 
         // Enviar para o Python
@@ -104,9 +107,9 @@ int main()
         if (tem_dados)
         {           
 
-            printf("Vel: %.2f km/h W0: %.1f%% W1: %.1f%% W2: %.1f%% W3: %.1f%% W4: %.1f%% W5: %.1f%%\r",
+            printf("Vel: %.2f km/h tc: %f\r",
                    physics->speedKmh,
-                   physics->carDamage[0], physics->carDamage[1], physics->carDamage[2], physics->carDamage[3], physics->carDamage[4]); // teste
+                   physics->tc * 100); // teste
         }
         else
         {
