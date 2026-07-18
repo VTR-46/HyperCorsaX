@@ -380,8 +380,7 @@ ws.onmessage = function (event) {
     updateMeterGBC('gasFill', 'gasValue', data.gas * 100 ?? 0, 0, 100, ' %', '#18EB00');
     updateMeterGBC('brakeFill', 'brakeValue', data.brake * 100 ?? 0, 0, 100, ' %', '#DE0000');
     updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#DE0000');
-    //updateColorBlock(data.tc, 'tc');
-    console.log(data.brake);
+
     speedChart.update('none');
     pedalsChart.update('none');
 };
