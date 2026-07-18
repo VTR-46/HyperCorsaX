@@ -305,6 +305,20 @@ const updateRpmDashbord = (value) => {
 
 };
 
+const uptadeDrs_Aa = (value, id, valueId) => {
+    const label = document.getElementById(valueId);
+    const block = document.getElementById(id);
+    console.log(value);
+    if (value == 0) {
+        block.style.backgroundColor = '#000000';
+        label.innerText = 'OFF';
+    }else{
+        block.style.backgroundColor = '#5CF700';
+        label.innerText = 'ON';
+    }
+
+};
+
 // ==========================================
 // WEBSOCKET
 // ==========================================
@@ -351,6 +365,7 @@ ws.onmessage = function (event) {
     updateOnlyValue('speed-label', data.speed, " KM/h");
     updateGear('gear-label', data.gear);
     updateRpmDashbord(data.rpm);
+    uptadeDrs_Aa(data.drs, 'drs', 'drs-label');
     //updateColorBlock(data.tc, 'tc');
 
     speedChart.update('none');
