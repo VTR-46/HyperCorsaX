@@ -264,30 +264,30 @@ const updateRpmDashbord = (value) => {
 
 
 
-    if (value <= 5000) {
-        rmpB1.style.backgroundColor = '#000000';    //azul
-        if (value <= 6000) {
-            rmpB2.style.backgroundColor = '#000000';
-            if (value <= 7000) {
-                rmpB3.style.backgroundColor = '#000000';
-                if (value <= 7500) {
-                    rmpB4.style.backgroundColor = '#000000';
-                    if (value <= 8000) {
-                        rmpB5.style.backgroundColor = '#000000'; // amaerelo
-                        if (value <= 8500) {
-                            rmpB6.style.backgroundColor = '#000000';
-                            if (value <= 9000) {
-                                rmpB7.style.backgroundColor = '#000000';
-                                if (value <= 9500) {
-                                    rmpB8.style.backgroundColor = '#000000';
-                                    if (value <= 10000) {
-                                        rmpB9.style.backgroundColor = '#000000';    // vermelho
-                                        if (value <= 10500) {
-                                            rmpB10.style.backgroundColor = '#000000';
-                                            if (value <= 11000) {
-                                                rmpB11.style.backgroundColor = '#000000';
-                                                if (value <= 12000) {
-                                                    rmpB12.style.backgroundColor = '#000000';
+    if (value <= 12000) {
+        rmpB12.style.backgroundColor = '#000000';    //azul
+        if (value <= 11000) {
+            rmpB11.style.backgroundColor = '#000000';
+            if (value <= 10500) {
+                rmpB10.style.backgroundColor = '#000000';
+                if (value <= 10000) {
+                    rmpB9.style.backgroundColor = '#000000';
+                    if (value <= 9500) {
+                        rmpB8.style.backgroundColor = '#000000'; // amaerelo
+                        if (value <= 9000) {
+                            rmpB7.style.backgroundColor = '#000000';
+                            if (value <= 8500) {
+                                rmpB6.style.backgroundColor = '#000000';
+                                if (value <= 8000) {
+                                    rmpB5.style.backgroundColor = '#000000';
+                                    if (value <= 7500) {
+                                        rmpB4.style.backgroundColor = '#000000';    // vermelho
+                                        if (value <= 7000) {
+                                            rmpB3.style.backgroundColor = '#000000';
+                                            if (value <= 6000) {
+                                                rmpB2.style.backgroundColor = '#000000';
+                                                if (value <= 5000) {
+                                                    rmpB1.style.backgroundColor = '#000000';
                                                 }
                                             }
                                         }
