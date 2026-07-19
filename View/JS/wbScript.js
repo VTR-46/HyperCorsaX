@@ -65,7 +65,7 @@ const speedChart = new Chart(ctxSpeed, {
 
 // Grafico de Pedais
 const ctxPedals = document.getElementById('pedalsChart').getContext('2d');
-const pedalsChart = new Chart(ctxTyreTemp, {
+const pedalsChart = new Chart(ctxPedals, {
     type: 'line',
     data: {
         datasets: [
@@ -219,9 +219,9 @@ ws.onmessage = function (event) {
     const t = (Date.now() - startTime) / 1000;
 
     // 1. Atualiza Arrays dos Gráficos
-    const speedData = wearChart.data.datasets[0].data;
-    const gasData = wearChart.data.datasets[0].data;
-    const brakeData = wearChart.data.datasets[1].data;
+    const speedData = speedChart.data.datasets[0].data;
+    const gasData = pedalsChart.data.datasets[0].data;
+    const brakeData = pedalsChart.data.datasets[1].data;
 
     speedData.push({ x: t, y: data.speed });
     gasData.push({ x: t, y: data.gas });
@@ -276,15 +276,15 @@ ws.onmessage = function (event) {
     if (autoScroll) {
         const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
 
-        wearChart.options.scales.x.min = minX;
-        wearChart.options.scales.x.max = t;
+        speedChart.options.scales.x.min = minX;
+        speedChart.options.scales.x.max = t;
 
-        wearChart.options.scales.x.min = minX;
-        wearChart.options.scales.x.max = t;
+        pedalsChart.options.scales.x.min = minX;
+        pedalsChart.options.scales.x.max = t;
     }
 
-    wearChart.update('none');
-    wearChart.update('none');
+    speedChart.update('none');
+    pedalsChart.update('none');
 };
 
 ws.onopen = () => console.log("Conectado à telemetria!");
