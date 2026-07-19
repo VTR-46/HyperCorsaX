@@ -63,17 +63,19 @@ const speedChart = new Chart(ctxSpeed, {
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 300, ...commonOptions.scales.y } } }
 });
 
-// Grafico de Pedais
-const ctxPedals = document.getElementById('pedalsChart').getContext('2d');
-const pedalsChart = new Chart(ctxTyreTemp, {
+// Grafico de temperatura dos pneus
+const ctxTyreTemp = document.getElementById('tempChart').getContext('2d');
+const tempChart = new Chart(ctxTyreTemp, {
     type: 'line',
     data: {
         datasets: [
-            { label: 'Acelerador', data: [], borderColor: '#00FF37', borderWidth: 2 },
-            { label: 'Freio', data: [], borderColor: '#E74C3C', borderWidth: 2 }
+            { label: 'FL', data: [], borderColor: '#FF0000', borderWidth: 2 },
+            { label: 'FR', data: [], borderColor: '#EBFF00', borderWidth: 2 },
+            { label: 'RL', data: [], borderColor: '#2FFF00', borderWidth: 2 },
+            { label: 'RR', data: [], borderColor: '#0090FF', borderWidth: 2 }
         ]
     },
-    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 150, ...commonOptions.scales.y } } }
 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -218,22 +220,7 @@ ws.onmessage = function (event) {
     const data = JSON.parse(event.data);
     const t = (Date.now() - startTime) / 1000;
 
-    // 1. Atualiza Arrays dos Gráficos
-    const speedData = speedChart.data.datasets[0].data;
-    const gasData = wearChart.data.datasets[0].data;
-    const brakeData = wearChart.data.datasets[1].data;
 
-    speedData.push({ x: t, y: data.speed });
-    gasData.push({ x: t, y: data.gas });
-    brakeData.push({ x: t, y: data.brake });
-
-    // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
-    const tempoLimite = t - (janelaTempo + 5); 
-    while (speedData.length > 0 && speedData[0].x < tempoLimite) {
-        speedData.shift();
-        gasData.shift();
-        brakeData.shift();
-    }
 
     // 3. Leituras de Pneu e Normalização
     const grip_w1 = data.tyreWFL ?? 0;
@@ -251,26 +238,49 @@ ws.onmessage = function (event) {
     updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRRFIll', 'brakeRRValue', data.brakeRR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
-    
+
     updateMeterTyreWear('tyreFLFill', 'tyreFLValue', hud_w1, 0, 100, '%');
     updateMeterTyreWear('tyreFRFill', 'tyreFRValue', hud_w2, 0, 100, '%');
     updateMeterTyreWear('tyreRLFIll', 'tyreRLValue', hud_w3, 0, 100, '%');
     updateMeterTyreWear('tyreRRFIll', 'tyreRRValue', hud_w4, 0, 100, '%');
-    
+
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
     updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#0004FF', '#FF0000');
-    
+
     updateOnlyValue('tyrePsiValueFL', data.tyrePressureFL ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueFR', data.tyrePressureFR ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueRL', data.tyrePressureRL ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueRR', data.tyrePressureRR ?? 0, ' psi');
 
-     updateOnlyValue('tyrePsiValueFL', data.tyreFL ?? 0, ' °C');
-     updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
-     updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
-     updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueFL', data.tyreFL ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
 
     updateDamageMap(data);
+
+    // 1. Atualiza Arrays dos Gráficos
+    const speedData = speedChart.data.datasets[0].data;
+
+    const FLData = tempChart.data.datasets[0].data;
+    const FRData = tempChart.data.datasets[1].data;
+    const RLData = tempChart.data.datasets[2].data;
+    const RRData = tempChart.data.datasets[3].data;
+
+    speedData.push({ x: t, y: data.speed });
+
+    FRData.push({ x: t, y: data.tyreFL });
+    FLData.push({ x: t, y: data.tyreFR });
+    RLData.push({ x: t, y: data.tyreRL });
+    RRData.push({ x: t, y: data.tyreRR });
+
+    // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
+    const tempoLimite = t - (janelaTempo + 5);
+    while (speedData.length > 0 && speedData[0].x < tempoLimite) {
+        speedData.shift();
+        FRData.shift();
+        FLData.shift();
+    }
 
     // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
@@ -279,12 +289,12 @@ ws.onmessage = function (event) {
         speedChart.options.scales.x.min = minX;
         speedChart.options.scales.x.max = t;
 
-        wearChart.options.scales.x.min = minX;
-        wearChart.options.scales.x.max = t;
+        tempChart.options.scales.x.min = minX;
+        tempChart.options.scales.x.max = t;
     }
 
     speedChart.update('none');
-    wearChart.update('none');
+    tempChart.update('none');
 };
 
 ws.onopen = () => console.log("Conectado à telemetria!");
