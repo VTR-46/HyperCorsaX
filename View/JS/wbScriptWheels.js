@@ -62,10 +62,11 @@ const wearChart = new Chart(ctxWear, {
             { label: 'FL', data: [], borderColor: '#FF0000', borderWidth: 2 },
             { label: 'FR', data: [], borderColor: '#EBFF00', borderWidth: 2 },
             { label: 'RL', data: [], borderColor: '#2FFF00', borderWidth: 2 },
-            { label: 'RR', data: [], borderColor: '#0090FF', borderWidth: 2 }
+            { label: 'RR', data: [], borderColor: '#0090FF', borderWidth: 2 },
+            { label: 'Média 4R', data: [], borderColor: '#FFFFFF', borderWidth: 2 }
         ]
     },
-    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 101, ...commonOptions.scales.y } } }
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 100, ...commonOptions.scales.y } } }
 });
 
 // Grafico de temperatura dos pneus
@@ -215,6 +216,10 @@ function getNormalizedWear(currentWear, tireKey) {
     return Math.pow(t, GAMMA_WEAR) * 100;
 }
 
+function averageTyreWear(FL, FR, RL, RR) {
+    return (FL + FR + RL + RR) / 4;
+}
+
 // ==========================================
 // WEBSOCKET
 // ==========================================
@@ -269,16 +274,26 @@ ws.onmessage = function (event) {
     const FRWearData = wearChart.data.datasets[1].data;
     const RLWearData = wearChart.data.datasets[2].data;
     const RRWearData = wearChart.data.datasets[3].data;
+    const avarageWearData = wearChart.data.datasets[4].data;
 
     const FLData = tempChart.data.datasets[0].data;
     const FRData = tempChart.data.datasets[1].data;
     const RLData = tempChart.data.datasets[2].data;
     const RRData = tempChart.data.datasets[3].data;
 
+    let w1 = getNormalizedWear(grip_w1, 'FL');
+    let w2 = getNormalizedWear(grip_w2, 'FR');
+    let w3 = getNormalizedWear(grip_w3, 'RL');
+    let w4 = getNormalizedWear(grip_w4, 'RR');
+
+   // console.log(w1);
+    //console.log('a'+averageTyreWear(w1, w2, w3, w4) );
+
     FLWearData.push({ x: t, y: getNormalizedWear(grip_w1, 'FL') });
     FRWearData.push({ x: t, y: getNormalizedWear(grip_w2, 'FR') });
     RLWearData.push({ x: t, y: getNormalizedWear(grip_w3, 'RL') });
     RRWearData.push({ x: t, y: getNormalizedWear(grip_w4, 'RR') });
+    avarageWearData.push({ x: t, y: averageTyreWear(w1, w2, w3, w4)  });
 
     FRData.push({ x: t, y: data.tyreFL });
     FLData.push({ x: t, y: data.tyreFR });
