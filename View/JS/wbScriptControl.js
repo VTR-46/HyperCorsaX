@@ -55,7 +55,7 @@ const commonOptions = {
 
 // Gráfico de Velocidade
 const ctxSpeed = document.getElementById('speedChart').getContext('2d');
-const speedChart = new Chart(ctxSpeed, {
+const wearChart = new Chart(ctxSpeed, {
     type: 'line',
     data: {
         datasets: [{ label: 'KM/H', data: [], borderColor: '#FF6B6B', borderWidth: 2 }]
@@ -341,7 +341,7 @@ ws.onmessage = function (event) {
     const t = (Date.now() - startTime) / 1000;
 
     // 1. Atualiza Arrays dos Gráficos
-    const speedData = speedChart.data.datasets[0].data;
+    const speedData = wearChart.data.datasets[0].data;
     const gasData = pedalsChart.data.datasets[0].data;
     const brakeData = pedalsChart.data.datasets[1].data;
 
@@ -360,8 +360,8 @@ ws.onmessage = function (event) {
     if (autoScroll) {
         const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
 
-        speedChart.options.scales.x.min = minX;
-        speedChart.options.scales.x.max = t;
+        wearChart.options.scales.x.min = minX;
+        wearChart.options.scales.x.max = t;
 
         pedalsChart.options.scales.x.min = minX;
         pedalsChart.options.scales.x.max = t;
@@ -381,7 +381,7 @@ ws.onmessage = function (event) {
     updateMeterGBC('brakeFill', 'brakeValue', data.brake * 100 ?? 0, 0, 100, ' %', '#DE0000');
     updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#DE0000');
 
-    speedChart.update('none');
+    wearChart.update('none');
     pedalsChart.update('none');
 };
 

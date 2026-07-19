@@ -53,14 +53,19 @@ const commonOptions = {
     }
 };
 
-// Gráfico de Velocidade
-const ctxSpeed = document.getElementById('speedChart').getContext('2d');
-const speedChart = new Chart(ctxSpeed, {
+// Gráfico de Desgaste
+const ctxWear = document.getElementById('wearChart').getContext('2d');
+const wearChart = new Chart(ctxWear, {
     type: 'line',
     data: {
-        datasets: [{ label: 'Velocidade (km/h)', data: [], borderColor: '#FF6B6B', borderWidth: 2 }]
+        datasets: [
+            { label: 'FL', data: [], borderColor: '#FF0000', borderWidth: 2 },
+            { label: 'FR', data: [], borderColor: '#EBFF00', borderWidth: 2 },
+            { label: 'RL', data: [], borderColor: '#2FFF00', borderWidth: 2 },
+            { label: 'RR', data: [], borderColor: '#0090FF', borderWidth: 2 }
+        ]
     },
-    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 300, ...commonOptions.scales.y } } }
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 101, ...commonOptions.scales.y } } }
 });
 
 // Grafico de temperatura dos pneus
@@ -260,14 +265,20 @@ ws.onmessage = function (event) {
     updateDamageMap(data);
 
     // 1. Atualiza Arrays dos Gráficos
-    const speedData = speedChart.data.datasets[0].data;
+    const FLWearData = wearChart.data.datasets[0].data;
+    const FRWearData = wearChart.data.datasets[1].data;
+    const RLWearData = wearChart.data.datasets[2].data;
+    const RRWearData = wearChart.data.datasets[3].data;
 
     const FLData = tempChart.data.datasets[0].data;
     const FRData = tempChart.data.datasets[1].data;
     const RLData = tempChart.data.datasets[2].data;
     const RRData = tempChart.data.datasets[3].data;
 
-    speedData.push({ x: t, y: data.speed });
+    FLWearData.push({ x: t, y: getNormalizedWear(grip_w1, 'FL') });
+    FRWearData.push({ x: t, y: getNormalizedWear(grip_w2, 'FR') });
+    RLWearData.push({ x: t, y: getNormalizedWear(grip_w3, 'RL') });
+    RRWearData.push({ x: t, y: getNormalizedWear(grip_w4, 'RR') });
 
     FRData.push({ x: t, y: data.tyreFL });
     FLData.push({ x: t, y: data.tyreFR });
@@ -276,24 +287,27 @@ ws.onmessage = function (event) {
 
     // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
     const tempoLimite = t - (janelaTempo + 5);
-    while (speedData.length > 0 && speedData[0].x < tempoLimite) {
-        speedData.shift();
+    while (FLWearData.length > 0 && FLWearData[0].x < tempoLimite) {
+        FLWearData.shift();
         FRData.shift();
         FLData.shift();
+        RLData.shift();
+        RRData.shift();
+
     }
 
     // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
         const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
 
-        speedChart.options.scales.x.min = minX;
-        speedChart.options.scales.x.max = t;
+        wearChart.options.scales.x.min = minX;
+        wearChart.options.scales.x.max = t;
 
         tempChart.options.scales.x.min = minX;
         tempChart.options.scales.x.max = t;
     }
 
-    speedChart.update('none');
+    wearChart.update('none');
     tempChart.update('none');
 };
 

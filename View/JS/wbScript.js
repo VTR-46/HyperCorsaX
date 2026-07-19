@@ -219,7 +219,7 @@ ws.onmessage = function (event) {
     const t = (Date.now() - startTime) / 1000;
 
     // 1. Atualiza Arrays dos Gráficos
-    const speedData = speedChart.data.datasets[0].data;
+    const speedData = wearChart.data.datasets[0].data;
     const gasData = wearChart.data.datasets[0].data;
     const brakeData = wearChart.data.datasets[1].data;
 
@@ -276,14 +276,14 @@ ws.onmessage = function (event) {
     if (autoScroll) {
         const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
 
-        speedChart.options.scales.x.min = minX;
-        speedChart.options.scales.x.max = t;
+        wearChart.options.scales.x.min = minX;
+        wearChart.options.scales.x.max = t;
 
         wearChart.options.scales.x.min = minX;
         wearChart.options.scales.x.max = t;
     }
 
-    speedChart.update('none');
+    wearChart.update('none');
     wearChart.update('none');
 };
 
