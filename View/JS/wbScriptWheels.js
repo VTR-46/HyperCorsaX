@@ -84,6 +84,38 @@ const tempChart = new Chart(ctxTyreTemp, {
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 150, ...commonOptions.scales.y } } }
 });
 
+
+// Grafico de pressão dos pneus
+const ctxPressure = document.getElementById('pressureChart').getContext('2d');
+const pressureChart = new Chart(ctxPressure, {
+    type: 'line',
+    data: {
+        datasets: [
+            { label: 'FL', data: [], borderColor: '#FF0000', borderWidth: 2 },
+            { label: 'FR', data: [], borderColor: '#EBFF00', borderWidth: 2 },
+            { label: 'RL', data: [], borderColor: '#2FFF00', borderWidth: 2 },
+            { label: 'RR', data: [], borderColor: '#0090FF', borderWidth: 2 }
+        ]
+    },
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 10, max: 35, ...commonOptions.scales.y } } }
+});
+
+// Grafico de temperatura dos freios
+const ctxBrakeTemp = document.getElementById('brakeChart').getContext('2d');
+const brakeChart = new Chart(ctxBrakeTemp, {
+    type: 'line',
+    data: {
+        datasets: [
+            { label: 'FL', data: [], borderColor: '#FF0000', borderWidth: 2 },
+            { label: 'FR', data: [], borderColor: '#EBFF00', borderWidth: 2 },
+            { label: 'RL', data: [], borderColor: '#2FFF00', borderWidth: 2 },
+            { label: 'RR', data: [], borderColor: '#0090FF', borderWidth: 2 }
+        ]
+    },
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 100, max: 1400, ...commonOptions.scales.y } } }
+});
+
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const hexToRgb = (hex) => {
@@ -286,6 +318,17 @@ ws.onmessage = function (event) {
     let w3 = getNormalizedWear(grip_w3, 'RL');
     let w4 = getNormalizedWear(grip_w4, 'RR');
 
+    const FLPressureData = pressureChart.data.datasets[0].data;
+    const FRPressureData = pressureChart.data.datasets[1].data;
+    const RLPressureData = pressureChart.data.datasets[2].data;
+    const RRPressureData = pressureChart.data.datasets[3].data;
+
+    const FLBrakeTempData = brakeChart.data.datasets[0].data;
+    const FRBrakeTempData = brakeChart.data.datasets[1].data;
+    const RLBrakeTempData = brakeChart.data.datasets[2].data;
+    const RRBrakeTempData = brakeChart.data.datasets[3].data;
+
+
    // console.log(w1);
     //console.log('a'+averageTyreWear(w1, w2, w3, w4) );
 
@@ -300,15 +343,35 @@ ws.onmessage = function (event) {
     RLData.push({ x: t, y: data.tyreRL });
     RRData.push({ x: t, y: data.tyreRR });
 
+    FLPressureData.push({ x: t, y: data.tyrePressureFL });
+    FRPressureData.push({ x: t, y: data.tyrePressureFR });
+    RLPressureData.push({ x: t, y: data.tyrePressureRL });
+    RRPressureData.push({ x: t, y: data.tyrePressureRR });
+
+    FLBrakeTempData.push({ x: t, y: data.brakeFL });
+    FRBrakeTempData.push({ x: t, y: data.brakeFR });
+    RLBrakeTempData.push({ x: t, y: data.brakeRL });
+    RRBrakeTempData.push({ x: t, y: data.brakeRR });
+
     // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
     const tempoLimite = t - (janelaTempo + 5);
     while (FLWearData.length > 0 && FLWearData[0].x < tempoLimite) {
         FLWearData.shift();
+
         FRData.shift();
         FLData.shift();
         RLData.shift();
         RRData.shift();
 
+        FLPressureData.shift();
+        FRPressureData.shift();
+        RLPressureData.shift();
+        RRPressureData.shift();
+
+        FLBrakeTempData.shift();
+        FRBrakeTempData.shift();
+        RLBrakeTempData.shift();
+        RRBrakeTempData.shift();
     }
 
     // 5. Scroll e Update dos Gráficos
@@ -324,6 +387,8 @@ ws.onmessage = function (event) {
 
     wearChart.update('none');
     tempChart.update('none');
+    pressureChart.update('none');
+    brakeChart.update('none');
 };
 
 ws.onopen = () => console.log("Conectado à telemetria!");
