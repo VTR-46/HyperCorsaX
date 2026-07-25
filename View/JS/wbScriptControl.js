@@ -379,7 +379,7 @@ ws.onmessage = function (event) {
     uptadeDrs_Aa(data.drs, 'drs', 'drs-label');
     updateMeterGBC('gasFill', 'gasValue', data.gas * 100 ?? 0, 0, 100, ' %', '#18EB00');
     updateMeterGBC('brakeFill', 'brakeValue', data.brake * 100 ?? 0, 0, 100, ' %', '#DE0000');
-    updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#DE0000');
+    updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#000BFF');
 
     wearChart.update('none');
     pedalsChart.update('none');
