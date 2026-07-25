@@ -368,7 +368,7 @@ ws.onmessage = function (event) {
     }
 
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 0, 130, ' L', '#0004FF', '#FF0000');
-    updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#0004FF', '#FF0000');
+    updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#FF0000', '#0004FF');
     updateSteeringWheel(data.steer);
     updateOnlyValue('abs-label', data.abs, ' ');
     updateOnlyValueTcAbs('tc-label', data.tc * 100, 'tc');
