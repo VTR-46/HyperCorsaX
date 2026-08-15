@@ -22,6 +22,50 @@
         <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
     </div>
 
+    <!-- ===================== PAINEL TEMPOS DE VOLTA ===================== -->
+    <section id="lapPanel" class="lap-panel">
+        <div class="lap-block lap-block-current">
+            <span class="lap-label">VOLTA ATUAL</span>
+            <span id="lap-current" class="lap-value">--:--.---</span>
+        </div>
+
+        <div class="lap-block lap-block-last">
+            <span class="lap-label">ÚLTIMA</span>
+            <span id="lap-last" class="lap-value">--:--.---</span>
+        </div>
+
+        <div class="lap-block lap-block-best">
+            <span class="lap-label">MELHOR</span>
+            <span id="lap-best" class="lap-value">--:--.---</span>
+        </div>
+
+        <div class="lap-block lap-block-split">
+            <span class="lap-label">SPLIT</span>
+            <span id="lap-split" class="lap-value">--:--.---</span>
+        </div>
+
+        <div class="lap-block lap-block-info">
+            <span class="lap-label">VOLTA</span>
+            <span id="lap-count" class="lap-value">0 / 0</span>
+        </div>
+
+        <div class="lap-block lap-block-info">
+            <span class="lap-label">POS</span>
+            <span id="lap-pos" class="lap-value">P--</span>
+        </div>
+
+        <div class="lap-block lap-block-info">
+            <span class="lap-label">SESSÃO</span>
+            <span id="lap-session" class="lap-value">--</span>
+        </div>
+
+        <div class="lap-block lap-block-info">
+            <span class="lap-label">SETOR</span>
+            <span id="lap-sector" class="lap-value">0</span>
+        </div>
+    </section>
+    <!-- ===================== FIM PAINEL TEMPOS DE VOLTA ===================== -->
+
     <section id="headerSectionT" class="headerSectionT mt-5 w-[90vw] max-w-300 rounded-2xl  bg-slate-900/80 p-4">
 
         <a href="../View/sc/engine.html"

@@ -182,9 +182,35 @@ const updateDamageMap = (data) => {
 // ==========================================
 // CALIBRAÇÃO DINÂMICA DE PNEUS (Escopo Global)
 // ==========================================
-// Armazena o maior valor de "saúde" do pneu lido até agora na sessão.
-const storedPeak = sessionStorage.getItem('ac_peak_wear');
-const peakWear = storedPeak ? JSON.parse(storedPeak) : { FL: 0, FR: 0, RL: 0, RR: 0 };
+// Armazena o maior valor de "saúdo" do pneu lido até agora na sessão.
+// Em "file://" alguns navegadores (Chrome/Edge recentes) tratam origens como
+// "unique security origins" e lançam SecurityError no sessionStorage. Cair num
+// try/catch garante que isso nunca derrube o restante do script (painel de voltas etc.).
+const peakWear = { FL: 0, FR: 0, RL: 0, RR: 0 };
+function loadPeakWearFromStorage() {
+    try {
+        const storedPeak = sessionStorage.getItem('ac_peak_wear');
+        if (storedPeak) {
+            const parsed = JSON.parse(storedPeak);
+            if (parsed && typeof parsed === 'object') {
+                peakWear.FL = Number(parsed.FL) || 0;
+                peakWear.FR = Number(parsed.FR) || 0;
+                peakWear.RL = Number(parsed.RL) || 0;
+                peakWear.RR = Number(parsed.RR) || 0;
+            }
+        }
+    } catch (e) {
+        // sessionStorage indisponível (ex.: file://) ou JSON inválido — ignora
+    }
+}
+function savePeakWearToStorage() {
+    try {
+        sessionStorage.setItem('ac_peak_wear', JSON.stringify(peakWear));
+    } catch (e) {
+        // idem: ignora silenciosamente
+    }
+}
+loadPeakWearFromStorage();
 
 // O delta de queda física. 
 const WEAR_DROP_CLIFF = 22.5;
@@ -194,7 +220,7 @@ function getNormalizedWear(currentWear, tireKey) {
     if (currentWear > peakWear[tireKey]) {
         peakWear[tireKey] = currentWear;
         // 3. Salva imediatamente no cofre do navegador para sobreviver ao F5
-        sessionStorage.setItem('ac_peak_wear', JSON.stringify(peakWear));
+        savePeakWearToStorage();
     }
 
     const currentPeak = peakWear[tireKey];
@@ -209,13 +235,104 @@ function getNormalizedWear(currentWear, tireKey) {
 }
 
 // ==========================================
+// PAINEL DE TEMPOS DE VOLTA
+// ==========================================
+const SESSION_NAMES = {
+    0: 'PRÁTICA',
+    1: 'TREINO',
+    2: 'CORRIDA',
+    3: 'HOTLAP',
+    4: 'TIME ATTACK',
+    5: 'DRIFT',
+    6: 'DRAG',
+    7: 'HOT STINT',
+    8: 'SUPER POLE'
+};
+
+// Guarda a última melhor volta para detectar quando uma nova melhor é estabelecida.
+let lastKnownBest = '--:--.---';
+let bestFlashTimer = null;
+
+// Converte o tempo "m:ss.mmm" do AC para milissegundos, para comparação.
+// Retorna -1 se não for um tempo válido.
+const lapTimeToMs = (t) => {
+    if (!t || t === '--:--.---' || t === '') return -1;
+    const parts = String(t).split(':');
+    if (parts.length !== 2) return -1;
+    const min = parseInt(parts[0], 10);
+    const sec = parseFloat(parts[1]);
+    if (isNaN(min) || isNaN(sec)) return -1;
+    return min * 60000 + sec * 1000;
+};
+
+const setTextSafe = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+};
+
+function updateLapPanel(data) {
+    const cur  = data.currentTime    ?? '--:--.---';
+    const last = data.lastTime        ?? '--:--.---';
+    const best = data.bestTime         ?? '--:--.---';
+    const spl  = data.split            ?? '--:--.---';
+    const laps = data.completedLaps   ?? 0;
+    const numLaps = data.numberOfLaps ?? 0;
+    const pos = data.position         ?? 0;
+    const sector = data.currentSector ?? 0;
+    const session = data.session      ?? 0;
+
+    setTextSafe('lap-current', cur);
+    setTextSafe('lap-last', last);
+    setTextSafe('lap-split', spl);
+
+    // Volta atual / total (se numberOfLaps for 0 mostra "livre")
+    const lapsStr = (numLaps > 0) ? `${laps} / ${numLaps}` : `${laps} / Livre`;
+    setTextSafe('lap-count', lapsStr);
+
+    // Posição: AC usa 1..N; 0 significa sem grid.
+    setTextSafe('lap-pos', (pos > 0) ? `P${pos}` : 'P--');
+
+    // Nome da sessão
+    setTextSafe('lap-session', SESSION_NAMES[session] ?? '--');
+
+    // Setor (1-indexado para o usuário; AC reporta 0..N-1)
+    setTextSafe('lap-sector', String(sector + 1));
+
+    // Melhor volta + destaque quando é uma nova melhor
+    const bestEl = document.getElementById('lap-best');
+    if (bestEl) {
+        const bestMs = lapTimeToMs(best);
+        const lastKnownMs = lapTimeToMs(lastKnownBest);
+
+        if (bestMs >= 0 && (lastKnownMs < 0 || bestMs < lastKnownMs)) {
+            // Nova melhor volta detectada — pisca em verde
+            lastKnownBest = best;
+            bestEl.textContent = best;
+            bestEl.classList.add('lap-best-flash');
+            if (bestFlashTimer) clearTimeout(bestFlashTimer);
+            bestFlashTimer = setTimeout(() => {
+                bestEl.classList.remove('lap-best-flash');
+            }, 1500);
+        } else {
+            bestEl.textContent = best;
+        }
+    }
+}
+
+// ==========================================
 // WEBSOCKET
 // ==========================================
 const ws = new WebSocket('ws://localhost:8765');
 
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
-    const data = JSON.parse(event.data);
+    let data;
+    try {
+        data = JSON.parse(event.data);
+    } catch (e) {
+        console.error('JSON inválido do WebSocket:', e);
+        return;
+    }
     const t = (Date.now() - startTime) / 1000;
 
     // 1. Atualiza Arrays dos Gráficos
@@ -272,7 +389,14 @@ ws.onmessage = function (event) {
 
     updateDamageMap(data);
 
-    // 5. Scroll e Update dos Gráficos
+    // 6. Painel de Tempos de Volta (isolate: numca pode travar o resto da telemetria)
+    try {
+        updateLapPanel(data);
+    } catch (err) {
+        console.error('updateLapPanel falhou:', err);
+    }
+
+    // 7. Scroll e Update dos Gráficos
     if (autoScroll) {
         const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
 
