@@ -223,29 +223,59 @@ const updateDamageMap = (data) => {
 // CALIBRAÇÃO DINÂMICA DE PNEUS (Escopo Global)
 // ==========================================
 // Armazena o maior valor de "saúde" do pneu lido até agora na sessão.
-const storedPeak = sessionStorage.getItem('ac_peak_wear');
-const peakWear = storedPeak ? JSON.parse(storedPeak) : { FL: 0, FR: 0, RL: 0, RR: 0 };
+// Em "file://" alguns navegadores tratam a origem como "unique security origin"
+// e lançam SecurityError no sessionStorage; o try/catch evita que isso derrube
+// todo o restante do script.
+const peakWear = { FL: 0, FR: 0, RL: 0, RR: 0 };
+function loadPeakWearFromStorage() {
+    try {
+        const storedPeak = sessionStorage.getItem('ac_peak_wear');
+        if (storedPeak) {
+            const parsed = JSON.parse(storedPeak);
+            if (parsed && typeof parsed === 'object') {
+                peakWear.FL = Number(parsed.FL) || 0;
+                peakWear.FR = Number(parsed.FR) || 0;
+                peakWear.RL = Number(parsed.RL) || 0;
+                peakWear.RR = Number(parsed.RR) || 0;
+            }
+        }
+    } catch (e) {
+        // sessionStorage indisponível (ex.: file://) ou JSON inválido — ignora
+    }
+}
+function savePeakWearToStorage() {
+    try {
+        sessionStorage.setItem('ac_peak_wear', JSON.stringify(peakWear));
+    } catch (e) {
+        // idem: ignora silenciosamente
+    }
+}
+loadPeakWearFromStorage();
 
 // O delta de queda física. 
-const WEAR_DROP_CLIFF = 22.5;
-const GAMMA_WEAR = 5.0;
+let WEAR_DROP_CLIFF = 22.5;
+let GAMMA_WEAR = 5.0;
 
 function getNormalizedWear(currentWear, tireKey) {
+    // Lê parâmetros do modal (se definidos via window) ou usa valores padrão
+    const dropCliff = window.WEAR_DROP_CLIFF ?? WEAR_DROP_CLIFF;
+    const gamma = window.GAMMA_WEAR ?? GAMMA_WEAR;
+
     if (currentWear > peakWear[tireKey]) {
         peakWear[tireKey] = currentWear;
         // 3. Salva imediatamente no cofre do navegador para sobreviver ao F5
-        sessionStorage.setItem('ac_peak_wear', JSON.stringify(peakWear));
+        savePeakWearToStorage();
     }
 
     const currentPeak = peakWear[tireKey];
 
     if (currentPeak === 0) return 100.0;
 
-    const cliff = currentPeak - WEAR_DROP_CLIFF;
+    const cliff = currentPeak - dropCliff;
     let t = (currentWear - cliff) / (currentPeak - cliff);
     t = Math.max(0, Math.min(1, t));
 
-    return Math.pow(t, GAMMA_WEAR) * 100;
+    return Math.pow(t, gamma) * 100;
 }
 
 function averageTyreWear(FL, FR, RL, RR) {

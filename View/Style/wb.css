@@ -527,3 +527,76 @@ body {
 
     background-color: #000000;
 }
+
+/* ===================== PAINEL TEMPOS DE VOLTA ===================== */
+.lap-panel {
+    width: 90vw;
+    max-width: 1200px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 10px;
+    background-color: #1e1e1e;
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.lap-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    background-color: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+}
+
+.lap-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.lap-value {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Bloco "volta atual" em ciano para destacar o cronômetro rodando */
+.lap-block-current .lap-value { color: #4ECDC4; }
+
+/* Melhor volta em dourado */
+.lap-block-best .lap-value { color: #F9CA24; }
+
+/* Split em laranja */
+.lap-block-split .lap-value { color: #FF9F40; }
+
+/* Última volta em cinza claro */
+.lap-block-last .lap-value { color: #d9d9d9; }
+
+/* Flash verde quando uma nova melhor volta é estabelecida */
+.lap-best-flash {
+    animation: lapBestFlash 0.4s ease-in-out 3;
+    color: #33FF00 !important;
+    text-shadow: 0 0 8px rgba(51, 255, 0, 0.6);
+}
+
+@keyframes lapBestFlash {
+    0%, 100% { color: #33FF00; transform: scale(1); }
+    50%      { color: #ffffff; transform: scale(1.08); }
+}
+
+@media (max-width: 1100px) {
+    .lap-panel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 650px) {
+    .lap-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lap-value { font-size: 0.95rem; }
+}

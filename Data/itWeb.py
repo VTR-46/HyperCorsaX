@@ -45,7 +45,8 @@ async def enviar_telemetria(websocket):
                     if not linha or not (linha[0].isdigit() or linha[0] == '-'):
                         continue
 
-                    valores = [valor for valor in linha.split(',') if valor != '']
+                    # Mantem a posicao original dos campos; remover vazios desloca os indices de lap timing.
+                    valores = linha.split(',')
 
                     if len(valores) >= 36:
                         try:
@@ -103,7 +104,20 @@ async def enviar_telemetria(websocket):
                                 "tc": float(valores[34]),
                                 
                                 #DRS
-                                "drs": float(valores[7])
+                                "drs": float(valores[7]),
+
+                                # ===== TEMPOS DE VOLTA (area graphics) =====
+                                # Indices 36-45 sao adicionados pelo readT.c
+                                "currentTime":     valores[36].strip() if len(valores) > 36 and valores[36].strip() else "--:--.---",
+                                "lastTime":        valores[37].strip() if len(valores) > 37 and valores[37].strip() else "--:--.---",
+                                "bestTime":        valores[38].strip() if len(valores) > 38 and valores[38].strip() else "--:--.---",
+                                "split":           valores[39].strip() if len(valores) > 39 and valores[39].strip() else "--:--.---",
+                                "completedLaps":   int(valores[40]) if len(valores) > 40 and valores[40].strip().isdigit() else 0,
+                                "position":        int(valores[41]) if len(valores) > 41 and valores[41].strip().lstrip('-').isdigit() else 0,
+                                "currentSector":   int(valores[42]) if len(valores) > 42 and valores[42].strip().isdigit() else 0,
+                                "numberOfLaps":    int(valores[43]) if len(valores) > 43 and valores[43].strip().isdigit() else 0,
+                                "status":           int(valores[44]) if len(valores) > 44 and valores[44].strip().isdigit() else 0,
+                                "session":         int(valores[45]) if len(valores) > 45 and valores[45].strip().isdigit() else 0,
                     
                             }
                             
