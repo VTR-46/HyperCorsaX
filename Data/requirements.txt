@@ -1,0 +1,2 @@
+websockets>=12,<16
+mysql-connector-python>=9,<10

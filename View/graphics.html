@@ -22,6 +22,22 @@
         <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
     </div>
 
+    <a href="/compare.html" class="history-link">Abrir comparação de voltas</a>
+
+    <section class="recording-controls" aria-label="Controle de gravação">
+        <button id="btnStartRecording" type="button">Iniciar gravação</button>
+        <button id="btnStopRecording" type="button" disabled>Parar gravação</button>
+        <span id="recordingStatus" role="status">Gravação desligada</span>
+    </section>
+
+    <section class="history-controls" aria-label="Comparacao de sessoes">
+        <label for="historySessionA">Sessao A</label>
+        <select id="historySessionA"><option value="">Selecione</option></select>
+        <label for="historySessionB">Sessao B</label>
+        <select id="historySessionB"><option value="">Selecione</option></select>
+        <button id="btnCompareSessions" type="button">Comparar sessoes</button>
+    </section>
+
     <!-- ===================== PAINEL TEMPOS DE VOLTA ===================== -->
     <section id="lapPanel" class="lap-panel">
         <div class="lap-block lap-block-current">

@@ -1,4 +1,5 @@
 let autoScroll = true;
+let liveMode = true;
 const janelaTempo = 15; // Quantos segundos mostrar na tela por padrão
 const startTime = Date.now();
 
@@ -14,6 +15,7 @@ const pausarAutoScroll = () => {
 
 // Função do botão para voltar ao tempo real
 window.toggleAutoScroll = () => {
+    liveMode = true;
     autoScroll = true;
     const btn = document.getElementById('btnAutoScroll');
     btn.innerText = "Auto-Scroll: LIGADO";
@@ -324,7 +326,40 @@ function updateLapPanel(data) {
 // ==========================================
 const ws = new WebSocket('ws://localhost:8765');
 
+const recordingStatus = document.getElementById('recordingStatus');
+const startRecordingButton = document.getElementById('btnStartRecording');
+const stopRecordingButton = document.getElementById('btnStopRecording');
+
+function updateRecordingControls(isRecording, message) {
+    if (recordingStatus) recordingStatus.textContent = message || (isRecording ? 'Gravando a cada segundo' : 'Gravação desligada');
+    if (startRecordingButton) startRecordingButton.disabled = isRecording;
+    if (stopRecordingButton) stopRecordingButton.disabled = !isRecording;
+}
+
+async function setRecording(path) {
+    const response = await fetch(path);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+    updateRecordingControls(Boolean(result.recording), result.recording ? 'Gravando a cada segundo' : 'Gravação desligada');
+}
+
+startRecordingButton?.addEventListener('click', async () => {
+    updateRecordingControls(false, 'Iniciando gravação...');
+    try { await setRecording('/api/recording/start'); }
+    catch (error) { updateRecordingControls(false, `Erro: ${error.message}`); }
+});
+
+stopRecordingButton?.addEventListener('click', async () => {
+    try { await setRecording('/api/recording/stop'); }
+    catch (error) { updateRecordingControls(true, `Erro: ${error.message}`); }
+});
+
+fetch('/api/health').then((response) => response.json()).then((result) => {
+    updateRecordingControls(Boolean(result.recording));
+}).catch(() => updateRecordingControls(false));
+
 ws.onmessage = function (event) {
+    if (!liveMode) return;
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     let data;
     try {
@@ -333,7 +368,7 @@ ws.onmessage = function (event) {
         console.error('JSON inválido do WebSocket:', e);
         return;
     }
-    const t = (Date.now() - startTime) / 1000;
+    const t = data.elapsed_ms != null ? data.elapsed_ms / 1000 : (Date.now() - startTime) / 1000;
 
     // 1. Atualiza Arrays dos Gráficos
     const speedData = speedChart.data.datasets[0].data;
@@ -413,3 +448,57 @@ ws.onmessage = function (event) {
 
 ws.onopen = () => console.log("Conectado à telemetria!");
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+async function loadSessionOptions() {
+    try {
+        const response = await fetch('/api/sessions');
+        if (!response.ok) return;
+        const sessions = await response.json();
+        const selects = [document.getElementById('historySessionA'), document.getElementById('historySessionB')];
+        sessions.forEach((session) => selects.forEach((select) => {
+            const option = document.createElement('option');
+            option.value = session.id;
+            option.textContent = `${session.started_at} ${session.track || 'sessao'}`;
+            select.appendChild(option);
+        }));
+    } catch (error) {
+        console.warn('Historico indisponivel:', error);
+    }
+}
+
+async function compareSessions() {
+    const firstId = document.getElementById('historySessionA').value;
+    const secondId = document.getElementById('historySessionB').value;
+    if (!firstId || !secondId) return;
+    const response = await fetch(`/api/compare?left=${encodeURIComponent(firstId)}&right=${encodeURIComponent(secondId)}`);
+    if (!response.ok) {
+        console.warn('Comparacao indisponivel:', await response.text());
+        return;
+    }
+    const comparison = await response.json();
+    if (!Array.isArray(comparison.left) || !Array.isArray(comparison.right)) return;
+    const first = comparison.left;
+    const second = comparison.right;
+    const toPoints = (rows, signal) => rows.map((row) => ({ x: row.elapsed_ms / 1000, y: row[signal] }));
+    liveMode = false;
+    autoScroll = false;
+    speedChart.data.datasets = [
+        { label: 'Sessao A - velocidade', data: toPoints(first, 'speed'), borderColor: '#FF6B6B', borderWidth: 2 },
+        { label: 'Sessao B - velocidade', data: toPoints(second, 'speed'), borderColor: '#4DABF7', borderWidth: 2 },
+    ];
+    pedalsChart.data.datasets = [
+        { label: 'Sessao A - acelerador', data: toPoints(first, 'gas'), borderColor: '#00FF37', borderWidth: 2 },
+        { label: 'Sessao A - freio', data: toPoints(first, 'brake'), borderColor: '#E74C3C', borderWidth: 2 },
+        { label: 'Sessao B - acelerador', data: toPoints(second, 'gas'), borderColor: '#B6F36B', borderWidth: 2 },
+        { label: 'Sessao B - freio', data: toPoints(second, 'brake'), borderColor: '#FF9F43', borderWidth: 2 },
+    ];
+    speedChart.options.scales.x.min = undefined;
+    speedChart.options.scales.x.max = undefined;
+    pedalsChart.options.scales.x.min = undefined;
+    pedalsChart.options.scales.x.max = undefined;
+    speedChart.update();
+    pedalsChart.update();
+}
+
+document.getElementById('btnCompareSessions')?.addEventListener('click', compareSessions);
+loadSessionOptions();

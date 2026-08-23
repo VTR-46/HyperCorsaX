@@ -19,6 +19,138 @@ body {
     margin-bottom: 20px;
 }
 
+.history-controls {
+    width: min(90vw, 1200px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 12px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+.history-controls label {
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.history-controls select,
+.history-controls button {
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #121212;
+    color: #fff;
+}
+
+.history-controls button {
+    background: #00b894;
+    border-color: #00b894;
+    color: #121212;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.history-link {
+    color: #00d084;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.recording-controls {
+    width: min(90vw, 1200px);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0 18px;
+}
+
+.recording-controls button {
+    min-height: 38px;
+    padding: 8px 14px;
+    border: 1px solid #00d084;
+    border-radius: 5px;
+    background: #00d084;
+    color: #121212;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.recording-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#btnStopRecording {
+    border-color: #ff6b6b;
+    background: #ff6b6b;
+}
+
+#recordingStatus {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.compare-page {
+    height: auto;
+    min-height: 100vh;
+}
+
+.compare-header h1,
+.compare-header p {
+    margin: 0;
+}
+
+.eyebrow {
+    color: #00d084;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+}
+
+.compare-main {
+    width: min(90vw, 1200px);
+}
+
+.comparison-summary {
+    margin-bottom: 18px;
+    padding: 12px;
+    color: #bbb;
+    background: #1e1e1e;
+    border-left: 3px solid #00d084;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.comparison-grid .chart-container {
+    min-height: 360px;
+}
+
+.comparison-grid canvas {
+    width: 100% !important;
+    height: 290px !important;
+}
+
+@media (max-width: 760px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .history-controls > * {
+        flex: 1 1 100%;
+    }
+}
+
 .btn-scroll {
     background-color: #00B894;
     color: #121212;

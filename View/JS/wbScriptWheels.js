@@ -288,6 +288,7 @@ function averageTyreWear(FL, FR, RL, RR) {
 const ws = new WebSocket('ws://localhost:8765');
 
 ws.onmessage = function (event) {
+    if (window.telemetryHistoryMode) return;
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
     const t = (Date.now() - startTime) / 1000;
@@ -423,3 +424,25 @@ ws.onmessage = function (event) {
 
 ws.onopen = () => console.log("Conectado à telemetria!");
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+window.telemetryHistoryConfig = {
+    charts: { wear: wearChart, temperature: tempChart, pressure: pressureChart, brake: brakeChart },
+    fields: {
+        wear: [
+            { key: 'tyreWFL', label: 'FL', color: '#FF6B6B' }, { key: 'tyreWFR', label: 'FR', color: '#4DABF7' },
+            { key: 'tyreWRL', label: 'RL', color: '#00FF37' }, { key: 'tyreWRR', label: 'RR', color: '#FF9F43' },
+        ],
+        temperature: [
+            { key: 'tyreFL', label: 'FL', color: '#FF6B6B' }, { key: 'tyreFR', label: 'FR', color: '#4DABF7' },
+            { key: 'tyreRL', label: 'RL', color: '#00FF37' }, { key: 'tyreRR', label: 'RR', color: '#FF9F43' },
+        ],
+        pressure: [
+            { key: 'tyrePressureFL', label: 'FL', color: '#FF6B6B' }, { key: 'tyrePressureFR', label: 'FR', color: '#4DABF7' },
+            { key: 'tyrePressureRL', label: 'RL', color: '#00FF37' }, { key: 'tyrePressureRR', label: 'RR', color: '#FF9F43' },
+        ],
+        brake: [
+            { key: 'brakeFL', label: 'FL', color: '#FF6B6B' }, { key: 'brakeFR', label: 'FR', color: '#4DABF7' },
+            { key: 'brakeRL', label: 'RL', color: '#00FF37' }, { key: 'brakeRR', label: 'RR', color: '#FF9F43' },
+        ],
+    },
+};

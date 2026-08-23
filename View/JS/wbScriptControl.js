@@ -336,6 +336,7 @@ const updateMeterGBC = (fillId, valueId, value, min, max, suffix, color) => {
 const ws = new WebSocket('ws://localhost:8765');
 
 ws.onmessage = function (event) {
+    if (window.telemetryHistoryMode) return;
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
     const t = (Date.now() - startTime) / 1000;
@@ -387,3 +388,14 @@ ws.onmessage = function (event) {
 
 ws.onopen = () => console.log("Conectado à telemetria!");
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+window.telemetryHistoryConfig = {
+    charts: { speed: wearChart, pedals: pedalsChart },
+    fields: {
+        speed: [{ key: 'speed', label: 'Velocidade', color: '#FF6B6B', altColor: '#4DABF7' }],
+        pedals: [
+            { key: 'gas', label: 'Acelerador', color: '#00FF37', altColor: '#B6F36B' },
+            { key: 'brake', label: 'Freio', color: '#E74C3C', altColor: '#FF9F43' },
+        ],
+    },
+};

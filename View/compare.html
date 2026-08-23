@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperCorsaX - Comparar voltas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <link rel="stylesheet" href="/View/Style/wb.css">
+    <link rel="stylesheet" href="/View/src/output.css">
+</head>
+<body class="compare-page">
+    <header class="header compare-header">
+        <div>
+            <p class="eyebrow">HYPERCORSA X</p>
+            <h1>Comparar voltas</h1>
+        </div>
+        <a href="/graphics.html" class="history-link">Voltar ao live</a>
+    </header>
+
+    <main class="compare-main">
+        <section class="history-controls" aria-label="Seleção de voltas">
+            <label for="leftSession">Volta A</label>
+            <select id="leftSession"><option value="">Selecione uma sessão</option></select>
+            <label for="rightSession">Volta B</label>
+            <select id="rightSession"><option value="">Selecione uma sessão</option></select>
+            <button id="compareButton" type="button">Comparar voltas</button>
+            <span id="compareStatus" role="status">Carregando sessões...</span>
+        </section>
+
+        <section id="comparisonSummary" class="comparison-summary" aria-live="polite">
+            Selecione duas sessões para começar a comparação.
+        </section>
+
+        <section class="comparison-grid">
+            <article class="chart-container"><h2>Velocidade</h2><canvas id="speedChart"></canvas></article>
+            <article class="chart-container"><h2>RPM</h2><canvas id="rpmChart"></canvas></article>
+            <article class="chart-container"><h2>Pedais</h2><canvas id="pedalsChart"></canvas></article>
+            <article class="chart-container"><h2>Temperatura dos pneus</h2><canvas id="tyreTempChart"></canvas></article>
+        </section>
+    </main>
+    <script src="/View/JS/compare.js"></script>
+</body>
+</html>
