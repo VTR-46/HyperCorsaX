@@ -167,25 +167,27 @@
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    min-height: 400px;
+    height: 400px;           /* Altura FIXA em vez de min-height */
     display: flex;
     flex-direction: column;
+    overflow: hidden;        /* Impede crescimento do container */
 }
 
 .compare-chart canvas {
-    flex: 1;
-    min-height: 350px;
-    width: 100% !important;
+    flex: 0 0 auto;          /* Não cresce, não encolhe - tamanho fixo */
     height: 350px !important;
+    width: 100% !important;
+    max-height: 350px;       /* Limite superior */
 }
 
 .compare-chart.wide {
     grid-column: span 2;
+    height: 430px;           /* Um pouco mais alto para gráficos wide */
 }
 
 .compare-chart.wide canvas {
-    min-height: 380px;
     height: 380px !important;
+    max-height: 380px;
 }
 
 .compare-chart h3 {

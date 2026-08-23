@@ -24,7 +24,7 @@ window.toggleAutoScroll = () => {
 const commonOptions = {
     animation: false,
     parsing: false, // ideal
-    normalized: true,
+    // normalized: true,  // REMOVIDO no Chart.js v4
     responsive: true,
     elements: { point: { radius: 0 } },
     scales: {

@@ -25,8 +25,13 @@ const metadataPanel = document.getElementById('metadataPanel');
 
 // Manipula seleção de arquivo
 async function handleFileSelect(runLabel, input) {
+    console.log('[Compare] === handleFileSelect called ===', { runLabel, inputId: input.id });
+    console.log('[Compare] window.Recorder exists?', typeof window.Recorder);
+    console.log('[Compare] window.Recorder.parseFile?', typeof window.Recorder?.parseFile);
+    console.log('[Compare] input.files length:', input.files.length);
     const file = input.files[0];
-    if (!file) return;
+    console.log('[Compare] Selected file:', file ? { name: file.name, size: file.size, type: file.type } : 'null');
+    if (!file) { console.log('[Compare] No file selected, returning'); return; }
 
     try {
         const data = await window.Recorder.parseFile(file);
@@ -80,24 +85,37 @@ function clearComparison() {
 function generateComparison() {
     if (!runA || !runB) return;
 
-    destroyAllCharts();
-    showMetadata();
-    metadataPanel.style.display = 'block';
-    
-    const aligned = alignRunsByTime(runA, runB);
-    
-    createSpeedChart(aligned);
-    createRPMChart(aligned);
-    createPedalsChart(aligned);
-    createGearChart(aligned);
-    createTyreTempChart(aligned);
-    createTyrePressureChart(aligned);
-    createBrakeTempChart(aligned);
-    createDeltaSpeedChart(aligned);
-    createFuelChart(aligned);
-    createERSChart(aligned);
-    createSteerChart(aligned);
-    createTyreWearChart(aligned);
+    try {
+        console.log('[Compare] Generating comparison...');
+        console.log('[Compare] Run A samples:', runA.samples.length);
+        console.log('[Compare] Run B samples:', runB.samples.length);
+
+        destroyAllCharts();
+        showMetadata();
+        metadataPanel.style.display = 'block';
+
+        const aligned = alignRunsByTime(runA, runB);
+        console.log('[Compare] Aligned samples:', aligned.time.length);
+
+        createSpeedChart(aligned);
+        createRPMChart(aligned);
+        createPedalsChart(aligned);
+        createGearChart(aligned);
+        createTyreTempChart(aligned);
+        createTyrePressureChart(aligned);
+        createBrakeTempChart(aligned);
+        createDeltaSpeedChart(aligned);
+        createFuelChart(aligned);
+        createERSChart(aligned);
+        createSteerChart(aligned);
+        createTyreWearChart(aligned);
+
+        console.log('[Compare] All charts created successfully');
+    } catch (err) {
+        console.error('[Compare] Error generating comparison:', err);
+        alert("Erro ao gerar comparação: ");
+    }
+}
 // Alinha duas runs pelo tempo (interpola runB no tempo de runA)
 function alignRunsByTime(runA, runB) {
     const samplesA = runA.samples;
@@ -330,7 +348,7 @@ function destroyAllCharts() {
 const commonChartOptions = {
     animation: false,
     parsing: false,
-    normalized: true,
+    // normalized: true,  // REMOVIDO no Chart.js v4 - causava erro silencioso impedindo renderização
     responsive: true,
     maintainAspectRatio: false,
     elements: { point: { radius: 0 } },
@@ -357,6 +375,7 @@ const commonChartOptions = {
 };
 
 function createChart(canvasId, config) {
+    console.log('[Compare] Creating chart:', canvasId);
     const ctx = document.getElementById(canvasId).getContext('2d');
     const chart = new Chart(ctx, config);
     charts[canvasId] = chart;
@@ -544,4 +563,4 @@ function createGearChart(data) {
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 8, stepSize: 1 } } }
     });
-}}
+}
