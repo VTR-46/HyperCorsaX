@@ -335,6 +335,11 @@ ws.onmessage = function (event) {
     }
     const t = (Date.now() - startTime) / 1000;
 
+    // Atualiza o recorder se estiver gravando
+    if (window.updateRecorderData) {
+        window.updateRecorderData(data);
+    }
+
     // 1. Atualiza Arrays dos Gráficos
     const speedData = speedChart.data.datasets[0].data;
     const gasData = pedalsChart.data.datasets[0].data;

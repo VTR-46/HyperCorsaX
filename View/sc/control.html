@@ -19,7 +19,10 @@
 
     <div class="header">
         <h2>HYPERCORSA - Controle</h2>
-        <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+        <div class="header-actions">
+            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
+            <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+        </div>
     </div>
 
     <section id="headerSectionT" class="headerSectionT mt-5 w-[90vw] max-w-300 rounded-2xl  bg-slate-900/80 p-4">
@@ -157,6 +160,7 @@
 
     </div>
 
+    <script src="../JS/recorder.js"></script>
     <script src="../JS/wbScriptControl.js"></script>
 </body>
 

@@ -35,7 +35,57 @@ body {
     color: white;
 }
 
-.dashboard {
+.btn-record {
+    background-color: #2C2C2C;
+    color: #FF6B6B;
+    border: 2px solid #FF6B6B;
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: inherit;
+}
+
+.btn-record:hover:not(.recording) {
+    background-color: #FF6B6B;
+    color: #121212;
+}
+
+.btn-record.recording {
+    background-color: #FF6B6B;
+    color: white;
+    border-color: #FF6B6B;
+    animation: pulse-record 1s infinite;
+}
+
+.btn-record.recording:hover {
+    background-color: #CC0000;
+    border-color: #CC0000;
+    color: white;
+}
+
+@keyframes pulse-record {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+}
+
+.header {
+    width: 90vw;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;

@@ -1,0 +1,225 @@
+/* ==========================================
+   COMPARE PAGE STYLES
+   ========================================== */
+
+.compare-control-panel {
+    width: 90vw;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.file-input-group {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #161616;
+    border-radius: 6px;
+    border: 1px solid #2a2a2a;
+}
+
+.file-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+
+.file-input-group input[type="file"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+    font-family: inherit;
+}
+
+.file-input-group input[type="file"]:focus {
+    outline: none;
+    border-color: #4ECDC4;
+}
+
+.file-info {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: monospace;
+}
+
+.file-info.success {
+    background-color: rgba(78, 205, 196, 0.2);
+    border: 1px solid #4ECDC4;
+    color: #4ECDC4;
+}
+
+.file-info.error {
+    background-color: rgba(255, 107, 107, 0.2);
+    border: 1px solid #FF6B6B;
+    color: #FF6B6B;
+}
+
+.compare-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.btn-compare {
+    background-color: #4ECDC4;
+    color: #121212;
+    border: none;
+    padding: 12px 30px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.btn-compare:hover:not(:disabled) {
+    background-color: #3dbdbd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+}
+
+.btn-compare:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-clear {
+    background-color: #2C2C2C;
+    color: #FF6B6B;
+    border: 2px solid #FF6B6B;
+    padding: 12px 30px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.btn-clear:hover {
+    background-color: #FF6B6B;
+    color: #121212;
+}
+
+.metadata-panel {
+    width: 90vw;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.metadata-card {
+    background-color: #161616;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #2a2a2a;
+}
+
+.metadata-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.metadata-card.run-a h3 { color: #4ECDC4; }
+.metadata-card.run-b h3 { color: #FF6B6B; }
+.metadata-card.delta h3 { color: #F9CA24; }
+
+.metadata-card p {
+    margin: 6px 0;
+    font-size: 0.85rem;
+    color: #ccc;
+    font-family: monospace;
+}
+
+.compare-dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 90vw;
+    max-width: 1400px;
+    margin: 20px auto;
+    padding-bottom: 40px;
+}
+
+.compare-chart {
+    background-color: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.compare-chart canvas {
+    flex: 1;
+    min-height: 350px;
+    width: 100% !important;
+    height: 350px !important;
+}
+
+.compare-chart.wide {
+    grid-column: span 2;
+}
+
+.compare-chart.wide canvas {
+    min-height: 380px;
+    height: 380px !important;
+}
+
+.compare-chart h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: #ddd;
+    text-align: center;
+}
+
+@media (max-width: 1100px) {
+    .compare-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .compare-chart.wide {
+        grid-column: span 1;
+    }
+    
+    .metadata-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .compare-control-panel {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .compare-actions {
+        flex-direction: column;
+    }
+    
+    .btn-compare, .btn-clear {
+        width: 100%;
+    }
+}
