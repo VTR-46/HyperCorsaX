@@ -19,7 +19,9 @@
 
     <div class="header">
         <h2>HYPERCORSA - Telemetria em Tempo Real</h2>
-
+        <div class="header-actions">
+            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
+        </div>
     </div>
 
     <section id="headerSectionT" class="headerSectionT mt-5 w-[90vw] max-w-300 rounded-2xl  bg-slate-900/80 p-4">
@@ -140,22 +142,19 @@
     <br>
     <div class="dashboard">
         <div class="chart-container">
-            DESGASTE PNEUS
+            <h3>DESGASTE PNEUS</h3>
             <canvas id="wearChart"></canvas>
         </div>
         <div class="chart-container">
-            TEMPERATURA PNEUS
+            <h3>TEMPERATURA PNEUS</h3>
             <canvas id="tempChart"></canvas>
         </div>
-    </div>
-    <br>
-    <div class="dashboard">
         <div class="chart-container">
-            PRESSÃO PNEUS
+            <h3>PRESSÃO PNEUS</h3>
             <canvas id="pressureChart"></canvas>
         </div>
         <div class="chart-container">
-            TEMPERATURA FREIOS
+            <h3>TEMPERATURA FREIOS</h3>
             <canvas id="brakeChart"></canvas>
         </div>
     </div>
@@ -220,6 +219,7 @@
         </div>
     </div>
 
+    <script src="../JS/recorder.js"></script>
     <script src="../JS/wbScriptWheels.js"></script>
     <!-- <script src="../JS/wbScriptFT.js"></script> -->
 

@@ -24,7 +24,7 @@ window.toggleAutoScroll = () => {
 const commonOptions = {
     animation: false,
     parsing: false, // ideal
-    normalized: true,
+    // normalized: true,  // REMOVIDO no Chart.js v4
     responsive: true,
     elements: { point: { radius: 0 } },
     scales: {
@@ -150,6 +150,8 @@ const ws = new WebSocket('ws://localhost:8765');
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
+    // Feed recorder for comparison feature
+    if (window.updateRecorderData) window.updateRecorderData(data);
     const t = (Date.now() - startTime) / 1000;
 
     // 1. Atualiza Arrays dos Gráficos

@@ -24,7 +24,7 @@ window.toggleAutoScroll = () => {
 const commonOptions = {
     animation: false,
     parsing: false, // ideal
-    normalized: true,
+    // normalized: true,  // REMOVIDO no Chart.js v4
     responsive: true,
     elements: { point: { radius: 0 } },
     scales: {
@@ -334,6 +334,11 @@ ws.onmessage = function (event) {
         return;
     }
     const t = (Date.now() - startTime) / 1000;
+
+    // Atualiza o recorder se estiver gravando
+    if (window.updateRecorderData) {
+        window.updateRecorderData(data);
+    }
 
     // 1. Atualiza Arrays dos Gráficos
     const speedData = speedChart.data.datasets[0].data;

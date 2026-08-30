@@ -19,7 +19,10 @@
 
     <div class="header">
         <h2>HYPERCORSA - Telemetria em Tempo Real</h2>
-        <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+        <div class="header-actions">
+            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
+            <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+        </div>
     </div>
 
     <!-- ===================== PAINEL TEMPOS DE VOLTA ===================== -->
@@ -84,6 +87,14 @@
             class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
             <img src="./img/wheel.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
             <span class="text-sm font-semibold uppercase tracking-[0.2em]">RODAS</span>
+        </a>
+
+        <a href="compare.html"
+            class="group inline-flex items-center gap-3 border border-yellow-300 bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-400 hover:from-yellow-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <svg class="h-10 w-10 -xlp-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">COMPARAR</span>
         </a>
 
 
@@ -231,6 +242,7 @@
         </div>
 
     </div>
+    <script src="../View/JS/recorder.js"></script>
     <script src="../View/JS/wbScript.js"></script>
 </body>
 

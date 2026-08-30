@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperCorsaX - Comparar Gravações</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+    <link rel="stylesheet" href="Style/wb.css">
+    <link rel="stylesheet" href="Style/compare.css">
+    <link rel="stylesheet" href="src/output.css">
+</head>
+
+<body>
+    <div class="header">
+        <h2>HYPERCORSA - Comparar Gravações</h2>
+        <a href="graphics.html" class="btn-scroll" style="text-decoration: none;">← Voltar à Telemetria</a>
+    </div>
+
+    <!-- Painel de Controle de Arquivos -->
+    <section class="compare-control-panel">
+        <div class="file-input-group">
+            <label for="fileA">📁 Run A (Referência)</label>
+            <input type="file" id="fileA" accept=".json" onchange="handleFileSelect('A', this)">
+            <div id="fileAInfo" class="file-info">Nenhum arquivo selecionado</div>
+        </div>
+        
+        <div class="file-input-group">
+            <label for="fileB">📁 Run B (Comparação)</label>
+            <input type="file" id="fileB" accept=".json" onchange="handleFileSelect('B', this)">
+            <div id="fileBInfo" class="file-info">Nenhum arquivo selecionado</div>
+        </div>
+
+        <div class="compare-actions">
+            <button id="btnCompare" class="btn-compare" onclick="generateComparison()" disabled>Gerar Comparação</button>
+            <button id="btnClear" class="btn-clear" onclick="clearComparison()">Limpar</button>
+        </div>
+    </section>
+
+    <!-- Metadados das Runs -->
+    <section id="metadataPanel" class="metadata-panel" style="display: none;">
+        <div class="metadata-grid">
+            <div class="metadata-card run-a">
+                <h3>Run A</h3>
+                <div id="metaA"></div>
+            </div>
+            <div class="metadata-card run-b">
+                <h3>Run B</h3>
+                <div id="metaB"></div>
+            </div>
+            <div class="metadata-card delta">
+                <h3>Diferença (B - A)</h3>
+                <div id="metaDelta"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gráficos de Comparação -->
+    <div class="compare-dashboard">
+        <!-- Velocidade -->
+        <div class="chart-container compare-chart">
+            <h3>Velocidade (km/h)</h3>
+            <canvas id="speedCompareChart"></canvas>
+        </div>
+
+        <!-- RPM -->
+        <div class="chart-container compare-chart">
+            <h3>RPM</h3>
+            <canvas id="rpmCompareChart"></canvas>
+        </div>
+
+        <!-- Pedais -->
+        <div class="chart-container compare-chart">
+            <h3>Pedais</h3>
+            <canvas id="pedalsCompareChart"></canvas>
+        </div>
+
+        <!-- Marchas -->
+        <div class="chart-container compare-chart">
+            <h3>Marcha</h3>
+            <canvas id="gearCompareChart"></canvas>
+        </div>
+
+        <!-- Temperatura Pneus -->
+        <div class="chart-container compare-chart wide">
+            <h3>Temperatura dos Pneus (°C)</h3>
+            <canvas id="tyreTempCompareChart"></canvas>
+        </div>
+
+        <!-- Pressão Pneus -->
+        <div class="chart-container compare-chart wide">
+            <h3>Pressão dos Pneus (psi)</h3>
+            <canvas id="tyrePressureCompareChart"></canvas>
+        </div>
+
+        <!-- Freios -->
+        <div class="chart-container compare-chart wide">
+            <h3>Temperatura Freios (°C)</h3>
+            <canvas id="brakeTempCompareChart"></canvas>
+        </div>
+
+        <!-- Delta de Velocidade -->
+        <div class="chart-container compare-chart wide">
+            <h3>Delta Velocidade (B - A) km/h</h3>
+            <canvas id="deltaSpeedChart"></canvas>
+        </div>
+
+        <!-- Combustível -->
+        <div class="chart-container compare-chart">
+            <h3>Combustível (L)</h3>
+            <canvas id="fuelCompareChart"></canvas>
+        </div>
+
+        <!-- ERS -->
+        <div class="chart-container compare-chart">
+            <h3>ERS Power (%)</h3>
+            <canvas id="ersCompareChart"></canvas>
+        </div>
+
+        <!-- Volante -->
+        <div class="chart-container compare-chart">
+            <h3>Ângulo Volante</h3>
+            <canvas id="steerCompareChart"></canvas>
+        </div>
+
+        <!-- Desgaste Pneus -->
+        <div class="chart-container compare-chart wide">
+            <h3>Desgaste Pneus (%)</h3>
+            <canvas id="tyreWearCompareChart"></canvas>
+        </div>
+    </div>
+
+    <script src="JS/recorder.js"></script>
+    <script src="JS/compareScript.js"></script>
+</body>
+
+</html>
