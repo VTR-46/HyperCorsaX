@@ -15,6 +15,36 @@ const COLORS = {
     text: '#888'
 };
 
+// ==========================================
+// CALIBRAÇÃO DINÂMICA DE PNEUS
+// ==========================================
+// Tabelas de pico separadas para Run A e Run B para não misturar os valores.
+const peakWearA = { FL: 0, FR: 0, RL: 0, RR: 0 };
+const peakWearB = { FL: 0, FR: 0, RL: 0, RR: 0 };
+
+// Mesmos parâmetros do wbScriptWheels.js
+const WEAR_DROP_CLIFF = 22.5;
+const GAMMA_WEAR = 5.0;
+
+function resetPeakWear() {
+    peakWearA.FL = peakWearA.FR = peakWearA.RL = peakWearA.RR = 0;
+    peakWearB.FL = peakWearB.FR = peakWearB.RL = peakWearB.RR = 0;
+}
+
+function getNormalizedWear(currentWear, tireKey, peakTable) {
+    if (currentWear > peakTable[tireKey]) {
+        peakTable[tireKey] = currentWear;
+    }
+    const currentPeak = peakTable[tireKey];
+    if (currentPeak === 0) return 100.0;
+
+    const cliff = currentPeak - WEAR_DROP_CLIFF;
+    let t = (currentWear - cliff) / (currentPeak - cliff);
+    t = Math.max(0, Math.min(1, t));
+
+    return Math.pow(t, GAMMA_WEAR) * 100;
+}
+
 // Elementos DOM
 const fileAInput = document.getElementById('fileA');
 const fileBInput = document.getElementById('fileB');
@@ -120,6 +150,9 @@ function generateComparison() {
 function alignRunsByTime(runA, runB) {
     const samplesA = runA.samples;
     const samplesB = runB.samples;
+
+    // Reseta os picos para que cada comparação use calibração própria
+    resetPeakWear();
     
     const aligned = {
         time: [],
@@ -172,11 +205,12 @@ function alignRunsByTime(runA, runB) {
         aligned.brakeRR_A.push(sampleA.brakeRR);
         aligned.fuelA.push(sampleA.fuel);
         aligned.ersA.push(sampleA.ersPower * 100);
-        aligned.steerA.push(sampleA.steer);
-        aligned.tyreWFL_A.push(sampleA.tyreWFL);
-        aligned.tyreWFR_A.push(sampleA.tyreWFR);
-        aligned.tyreWRL_A.push(sampleA.tyreWRL);
-        aligned.tyreWRR_A.push(sampleA.tyreWRR);
+        aligned.steerA.push(sampleA.steer * 100);
+        // Normalização dinâmica de desgaste (igual ao wbScriptWheels.js)
+        aligned.tyreWFL_A.push(getNormalizedWear(sampleA.tyreWFL ?? 0, 'FL', peakWearA));
+        aligned.tyreWFR_A.push(getNormalizedWear(sampleA.tyreWFR ?? 0, 'FR', peakWearA));
+        aligned.tyreWRL_A.push(getNormalizedWear(sampleA.tyreWRL ?? 0, 'RL', peakWearA));
+        aligned.tyreWRR_A.push(getNormalizedWear(sampleA.tyreWRR ?? 0, 'RR', peakWearA));
         
         const sampleB = interpolateAtTime(samplesB, t);
         if (sampleB) {
@@ -200,10 +234,11 @@ function alignRunsByTime(runA, runB) {
             aligned.fuelB.push(sampleB.fuel);
             aligned.ersB.push(sampleB.ersPower * 100);
             aligned.steerB.push(sampleB.steer);
-            aligned.tyreWFL_B.push(sampleB.tyreWFL);
-            aligned.tyreWFR_B.push(sampleB.tyreWFR);
-            aligned.tyreWRL_B.push(sampleB.tyreWRL);
-            aligned.tyreWRR_B.push(sampleB.tyreWRR);
+            // Normalização dinâmica de desgaste (igual ao wbScriptWheels.js)
+            aligned.tyreWFL_B.push(getNormalizedWear(sampleB.tyreWFL ?? 0, 'FL', peakWearB));
+            aligned.tyreWFR_B.push(getNormalizedWear(sampleB.tyreWFR ?? 0, 'FR', peakWearB));
+            aligned.tyreWRL_B.push(getNormalizedWear(sampleB.tyreWRL ?? 0, 'RL', peakWearB));
+            aligned.tyreWRR_B.push(getNormalizedWear(sampleB.tyreWRR ?? 0, 'RR', peakWearB));
             aligned.deltaSpeed.push(sampleB.speed - sampleA.speed);
         } else {
             aligned.speedB.push(null);
@@ -528,7 +563,7 @@ function createSteerChart(data) {
                 { label: 'Run B', data: data.time.map((t, i) => ({ x: t, y: data.steerB[i] })), borderColor: COLORS.runB, borderWidth: 2, borderDash: [5, 5] }
             ]
         },
-        options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -540, suggestedMax: 540 } } }
+        options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -180, suggestedMax: 180 } } }
     });
 }
 
