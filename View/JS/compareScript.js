@@ -205,7 +205,7 @@ function alignRunsByTime(runA, runB) {
         aligned.brakeRR_A.push(sampleA.brakeRR);
         aligned.fuelA.push(sampleA.fuel);
         aligned.ersA.push(sampleA.ersPower * 100);
-        aligned.steerA.push(sampleA.steer * 100);
+        aligned.steerA.push(sampleA.steer * 180);
         // Normalização dinâmica de desgaste (igual ao wbScriptWheels.js)
         aligned.tyreWFL_A.push(getNormalizedWear(sampleA.tyreWFL ?? 0, 'FL', peakWearA));
         aligned.tyreWFR_A.push(getNormalizedWear(sampleA.tyreWFR ?? 0, 'FR', peakWearA));
@@ -233,7 +233,7 @@ function alignRunsByTime(runA, runB) {
             aligned.brakeRR_B.push(sampleB.brakeRR);
             aligned.fuelB.push(sampleB.fuel);
             aligned.ersB.push(sampleB.ersPower * 100);
-            aligned.steerB.push(sampleB.steer);
+            aligned.steerB.push(sampleB.steer * 180);
             // Normalização dinâmica de desgaste (igual ao wbScriptWheels.js)
             aligned.tyreWFL_B.push(getNormalizedWear(sampleB.tyreWFL ?? 0, 'FL', peakWearB));
             aligned.tyreWFR_B.push(getNormalizedWear(sampleB.tyreWFR ?? 0, 'FR', peakWearB));
