@@ -655,3 +655,387 @@ body {
     .lap-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lap-value { font-size: 0.95rem; }
 }
+
+/* =====================================================================
+   PÁGINA TEMPOS — Estilos
+   ===================================================================== */
+
+/* Status WebSocket */
+.ws-status {
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+}
+.ws-ok  { color: #22c55e; border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.07); }
+.ws-off { color: #6b7280; border-color: rgba(107,114,128,0.3); background: rgba(107,114,128,0.07); }
+
+/* Botão limpar sessão */
+.btn-clear {
+    background-color: #1c1c1c;
+    color: #ef4444;
+    border: 2px solid #ef4444;
+    padding: 8px 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+.btn-clear:hover {
+    background-color: #ef4444;
+    color: #fff;
+}
+
+/* ── Painel Volta Atual ── */
+.tempos-current-panel {
+    width: 90vw;
+    max-width: 1200px;
+    background-color: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+.tempos-info-strip {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Cronômetro + Setores ── */
+.tempos-chrono-block {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.tempos-sector-indicators {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.tempos-sector-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.sector-slot-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: #555;
+    text-transform: uppercase;
+}
+
+/* Bolinhas de setor */
+.sector-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+.sector-dot-pending { background: #2a2a2a; border: 2px solid #3a3a3a; }
+.sector-dot-active  {
+    background: #facc15;
+    border: 2px solid #fde68a;
+    box-shadow: 0 0 10px rgba(250,204,21,0.6);
+    animation: sector-pulse 0.9s infinite alternate;
+}
+.sector-dot-done    { background: #22c55e; border: 2px solid #4ade80; }
+
+@keyframes sector-pulse {
+    from { box-shadow: 0 0 6px rgba(250,204,21,0.5); }
+    to   { box-shadow: 0 0 18px rgba(250,204,21,0.9); }
+}
+
+.tempos-chrono-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tempos-sector-badge {
+    font-size: 0.7rem;
+    font-weight: bold;
+    letter-spacing: 0.2em;
+    color: #facc15;
+    text-transform: uppercase;
+}
+
+.tempos-chrono-time {
+    font-size: 2.8rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: #4ecdc4;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.tempos-split-row {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+.tempos-split-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: #555;
+    text-transform: uppercase;
+}
+.tempos-split-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #FF9F40;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Legenda de Cores ── */
+.tempos-legend {
+    width: 90vw;
+    max-width: 1200px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.legend-purple { background: #a855f7; box-shadow: 0 0 6px rgba(168,85,247,0.6); }
+.legend-green  { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.6); }
+.legend-yellow { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.5); }
+
+.legend-text {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.05em;
+}
+
+/* ── Painel Histórico ── */
+.tempos-history-panel {
+    width: 90vw;
+    max-width: 1200px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    margin-bottom: 40px;
+    min-height: 200px;
+    position: relative;
+}
+
+.tempos-table-wrap {
+    overflow-x: auto;
+}
+
+.tempos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.tempos-table th {
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: #555;
+    text-transform: uppercase;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.tempos-table th.th-lap   { text-align: left; }
+.tempos-table th.th-total { border-left: 1px solid #2a2a2a; }
+
+.tempos-table td {
+    padding: 9px 14px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-bottom: 1px solid #1a1a1a;
+    transition: background-color 0.15s;
+}
+
+.td-lap-num {
+    text-align: left !important;
+    color: #555;
+    font-size: 0.85rem !important;
+    font-weight: normal !important;
+}
+
+.td-sector {
+    letter-spacing: 0.04em;
+}
+
+.td-total {
+    border-left: 1px solid #2a2a2a;
+}
+
+.td-unknown { color: #333 !important; }
+
+/* ── Cores F1 ── */
+.sector-purple {
+    color: #8f17ff !important;
+    text-shadow: 0 0 8px rgba(168,85,247,0.5);
+}
+.sector-green {
+    color: #00d34e !important;
+    text-shadow: 0 0 8px rgba(34,197,94,0.4);
+}
+.sector-yellow {
+    color: #fffb00 !important;
+}
+
+/* ── Flash em nova volta ── */
+.lap-row-flash td {
+    animation: rowFlash 1.5s ease-out;
+}
+@keyframes rowFlash {
+    0%   { background-color: rgba(250,204,21,0.22); }
+    100% { background-color: transparent; }
+}
+
+/* ── Estado vazio ── */
+.tempos-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 0;
+    color: #333;
+    text-align: center;
+}
+.tempos-empty-icon {
+    width: 48px;
+    height: 48px;
+    stroke: #2a2a2a;
+}
+.tempos-empty-sub {
+    font-size: 0.8rem;
+    color: #2a2a2a;
+}
+
+/* ── Responsividade ── */
+@media (max-width: 650px) {
+    .tempos-chrono-time { font-size: 2rem; }
+    .tempos-current-panel { padding: 14px; }
+    .tempos-chrono-block { gap: 16px; }
+}
+
+/* ── Banner de Restauração ── */
+.tempos-banner {
+    width: 90vw;
+    max-width: 1200px;
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #4ade80;
+    padding: 10px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    animation: slideDown 0.3s ease-out;
+}
+.tempos-banner svg {
+    width: 20px;
+    height: 20px;
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Modal de Nova Sessão ── */
+.tempos-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tempos-modal {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    text-align: center;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tempos-modal h3 {
+    color: #eab308;
+    margin-top: 0;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.tempos-modal p {
+    color: #bbb;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 16px 0 24px;
+}
+.tempos-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tempos-modal-actions button {
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: inherit;
+    border: none;
+}
+.btn-keep {
+    background-color: #2a2a4a;
+    color: #fff;
+}
+.btn-keep:hover {
+    background-color: #3a3a6a;
+}
+.btn-clear-modal {
+    background-color: #ef4444;
+    color: #fff;
+}
+.btn-clear-modal:hover {
+    background-color: #dc2626;
+}
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}

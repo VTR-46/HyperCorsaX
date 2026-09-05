@@ -48,7 +48,7 @@ async def enviar_telemetria(websocket):
                     # Mantem a posicao original dos campos; remover vazios desloca os indices de lap timing.
                     valores = linha.split(',')
 
-                    if len(valores) >= 50:
+                    if len(valores) >= 52:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -106,11 +106,11 @@ async def enviar_telemetria(websocket):
                                 #DRS
                                 "drs": float(valores[7]),
                                 
-                                #Suspensao
-                                "suspensionTravelFL": float(valores[46]),
-                                "suspensionTravelFR": float(valores[47]),
-                                "suspensionTravelRL": float(valores[48]),
-                                "suspensionTravelRR": float(valores[49]),
+                                #Suspensao (indices 48..51 apos inclusao de iLastTime/lastSectorTime)
+                                "suspensionTravelFL": float(valores[48]),
+                                "suspensionTravelFR": float(valores[49]),
+                                "suspensionTravelRL": float(valores[50]),
+                                "suspensionTravelRR": float(valores[51]),
 
                                 # ===== TEMPOS DE VOLTA (area graphics) =====
                                 # Indices 36-45 sao adicionados pelo readT.c
@@ -124,8 +124,10 @@ async def enviar_telemetria(websocket):
                                 "numberOfLaps":    int(valores[43]) if len(valores) > 43 and valores[43].strip().isdigit() else 0,
                                 "status":           int(valores[44]) if len(valores) > 44 and valores[44].strip().isdigit() else 0,
                                 "session":         int(valores[45]) if len(valores) > 45 and valores[45].strip().isdigit() else 0,
-                    
-                            }
+                                # 46..47: iLastTime e lastSectorTime em ms (inteiros, -1 = inválido)
+                                "iLastTime":       int(valores[46]) if len(valores) > 46 and valores[46].strip().lstrip('-').isdigit() else -1,
+                                "lastSectorTime":  int(valores[47]) if len(valores) > 47 and valores[47].strip().lstrip('-').isdigit() else -1,
+                    }
                             
                             # Envia para o navegador
                             await websocket.send(json.dumps(payload))
