@@ -76,6 +76,21 @@ const pedalsChart = new Chart(ctxPedals, {
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
 });
 
+// Grafico de Suspensão
+const ctxSuspension = document.getElementById('suspensionChart').getContext('2d');
+const suspensionChart = new Chart(ctxSuspension, {
+    type: 'line',
+    data: {
+        datasets: [
+            { label: 'FL', data: [], borderColor: '#FF33A1', borderWidth: 2 },
+            { label: 'FR', data: [], borderColor: '#33FFA1', borderWidth: 2 },
+            { label: 'RL', data: [], borderColor: '#33A1FF', borderWidth: 2 },
+            { label: 'RR', data: [], borderColor: '#F3FF33', borderWidth: 2 }
+        ]
+    },
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -2, max: 30, ...commonOptions.scales.y } } }
+});
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const hexToRgb = (hex) => {
@@ -349,10 +364,20 @@ ws.onmessage = function (event) {
     const speedData = wearChart.data.datasets[0].data;
     const gasData = pedalsChart.data.datasets[0].data;
     const brakeData = pedalsChart.data.datasets[1].data;
+    
+    const susFLData = suspensionChart.data.datasets[0].data;
+    const susFRData = suspensionChart.data.datasets[1].data;
+    const susRLData = suspensionChart.data.datasets[2].data;
+    const susRRData = suspensionChart.data.datasets[3].data;
 
     speedData.push({ x: t, y: data.speed });
     gasData.push({ x: t, y: data.gas });
     brakeData.push({ x: t, y: data.brake });
+    
+    susFLData.push({ x: t, y: data.suspensionTravelFL * 100});
+    susFRData.push({ x: t, y: data.suspensionTravelFR * 100});
+    susRLData.push({ x: t, y: data.suspensionTravelRL * 100});
+    susRRData.push({ x: t, y: data.suspensionTravelRR * 100 });
 
     // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
     const tempoLimite = t - (janelaTempo + 5);
@@ -360,6 +385,11 @@ ws.onmessage = function (event) {
         speedData.shift();
         gasData.shift();
         brakeData.shift();
+        
+        susFLData.shift();
+        susFRData.shift();
+        susRLData.shift();
+        susRRData.shift();
     }
     // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
@@ -370,6 +400,9 @@ ws.onmessage = function (event) {
 
         pedalsChart.options.scales.x.min = minX;
         pedalsChart.options.scales.x.max = t;
+        
+        suspensionChart.options.scales.x.min = minX;
+        suspensionChart.options.scales.x.max = t;
     }
 
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 0, 130, ' L', '#0004FF', '#FF0000');
@@ -388,6 +421,7 @@ ws.onmessage = function (event) {
 
     wearChart.update('none');
     pedalsChart.update('none');
+    suspensionChart.update('none');
 };
 
 ws.onopen = () => console.log("Conectado à telemetria!");

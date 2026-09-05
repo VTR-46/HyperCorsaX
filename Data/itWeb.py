@@ -48,7 +48,7 @@ async def enviar_telemetria(websocket):
                     # Mantem a posicao original dos campos; remover vazios desloca os indices de lap timing.
                     valores = linha.split(',')
 
-                    if len(valores) >= 36:
+                    if len(valores) >= 50:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -105,6 +105,12 @@ async def enviar_telemetria(websocket):
                                 
                                 #DRS
                                 "drs": float(valores[7]),
+                                
+                                #Suspensao
+                                "suspensionTravelFL": float(valores[46]),
+                                "suspensionTravelFR": float(valores[47]),
+                                "suspensionTravelRL": float(valores[48]),
+                                "suspensionTravelRR": float(valores[49]),
 
                                 # ===== TEMPOS DE VOLTA (area graphics) =====
                                 # Indices 36-45 sao adicionados pelo readT.c

@@ -197,3 +197,17 @@ window.Recorder = {
         return { runA, runB };
     }
 };
+// ==========================================
+// ATALHO DE TECLADO: F7 = Iniciar/Parar gravacao
+// ==========================================
+document.addEventListener('keydown', (e) => {
+    const target = e.target;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+    }
+    if (e.key === 'F7') {
+        e.preventDefault();
+        window.toggleRecording();
+    }
+});
+

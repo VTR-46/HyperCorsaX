@@ -180,7 +180,7 @@ int main()
                 "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,"     // 11..20 (10)
                 "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,"     // 21..30 (10)
                 "%.1f,%.1f,%f,%f,%f,"                                     // 31..35 (5)
-                "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d\n",                        // 36..45 (10)
+                "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f\n",                        // 36..45 (10)
                 physics->speedKmh,
                 (float)physics->rpms,
                 physics->gear - 1,
@@ -235,7 +235,12 @@ int main()
                 g_sector,
                 g_numberOfLaps,
                 g_status,
-                g_session);
+                g_session,
+            
+                physics->suspensionTravel[0],
+                physics->suspensionTravel[1],
+                physics->suspensionTravel[2],
+                physics->suspensionTravel[3]);
         }
         else
         {
@@ -260,10 +265,7 @@ int main()
         // TESTES/VISUALIZAÇAO
         if (tem_dados)
         {           
-
-            printf("Vel: %.2f km/h tc: %f\r",
-                   physics->speedKmh,
-                   physics->tc * 100); // teste
+            printf("\rSusT: %.2f, %.2f, %.2f, %.2f        ", (physics->suspensionTravel[0] * 100), physics->suspensionTravel[1], physics->suspensionTravel[2], physics->suspensionTravel[3]); // teste
         }
         else
         {
