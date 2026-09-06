@@ -1,5 +1,5 @@
 let autoScroll = true;
-const janelaTempo = 15; // Quantos segundos mostrar na tela por padrão
+const janelaTempo = 200; // Quantos segundos mostrar na tela por padrão
 const startTime = Date.now();
 
 // Quando o usuário interagir com o gráfico (arrastar/zoom) desliga o Auto-Scroll
@@ -154,12 +154,16 @@ const getMeterColor = (percent, lowColor, idealColor, highColor) => {
 };
 
 const getTireTempColor = (temp) => {
-    if (temp <= 80) return '#0004FF';
-    if (temp >= 130) return '#FF0000';
-    if (temp <= 100) {
-        return mixColor('#0004FF', '#33FF00', (temp - 80) / 20);
+    const cold = window.TIRE_TEMP_COLD || 80;
+    const ideal = window.TIRE_TEMP_IDEAL || 100;
+    const hot = window.TIRE_TEMP_HOT || 130;
+
+    if (temp <= cold) return '#0004FF';
+    if (temp >= hot) return '#FF0000';
+    if (temp <= ideal) {
+        return mixColor('#0004FF', '#33FF00', (temp - cold) / (ideal - cold));
     }
-    return mixColor('#33FF00', '#FF0000', (temp - 100) / 20);
+    return mixColor('#33FF00', '#FF0000', (temp - ideal) / (hot - ideal));
 };
 
 const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
@@ -281,6 +285,15 @@ function savePeakWearToStorage() {
     }
 }
 loadPeakWearFromStorage();
+
+window.resetPeakWear = function () {
+    peakWear.FL = 0;
+    peakWear.FR = 0;
+    peakWear.RL = 0;
+    peakWear.RR = 0;
+    savePeakWearToStorage();
+    return true;
+};
 
 // O delta de queda física. 
 let WEAR_DROP_CLIFF = 22.5;
