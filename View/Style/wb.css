@@ -11,8 +11,8 @@ body {
 }
 
 .header {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -71,8 +71,8 @@ body {
 }
 
 .header {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -91,8 +91,8 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
 }
 
 .chart-container {
@@ -106,8 +106,8 @@ body {
 }
 
 .meter-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background-color: #1e1e1e;
     padding: 16px;
@@ -117,8 +117,8 @@ body {
 }
 
 .meter-panel-2 {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background-color: #1e1e1e;
     padding: 16px;
@@ -374,8 +374,8 @@ body {
 }
 
 .damage-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background: linear-gradient(180deg, #1f1f1f 0%, #161616 100%);
     padding: 16px;
@@ -533,8 +533,8 @@ body {
 
 .headerSectionT{
 
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background-color: #1e1e1e;
     padding: 16px;
@@ -585,8 +585,8 @@ body {
 
 /* ===================== PAINEL TEMPOS DE VOLTA ===================== */
 .lap-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-bottom: 16px;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -692,8 +692,8 @@ body {
 
 /* ── Painel Volta Atual ── */
 .tempos-current-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     background-color: #1a1a2e;
     border: 1px solid #2a2a4a;
     border-radius: 12px;
@@ -802,8 +802,8 @@ body {
 
 /* ── Legenda de Cores ── */
 .tempos-legend {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     display: flex;
     gap: 24px;
     flex-wrap: wrap;
@@ -835,8 +835,8 @@ body {
 
 /* ── Painel Histórico ── */
 .tempos-history-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     background-color: #1e1e1e;
     border-radius: 10px;
     padding: 16px;
@@ -947,8 +947,8 @@ body {
 
 /* ── Banner de Restauração ── */
 .tempos-banner {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     background-color: rgba(34, 197, 94, 0.1);
     border: 1px solid rgba(34, 197, 94, 0.4);
     color: #4ade80;
