@@ -81,6 +81,32 @@ body {
     flex-wrap: wrap;
 }
 
+.header-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.header-logo {
+    height: 38px;
+    width: auto;
+    max-width: min(360px, 60vw);
+    object-fit: contain;
+    display: block;
+}
+
+.header-tab-name {
+    margin: 0;
+    padding: 0 0 0 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #f1f5f9;
+    line-height: 1.2;
+}
+
 .header-actions {
     display: flex;
     gap: 10px;
@@ -1068,13 +1094,17 @@ body {
     border: 1px solid rgba(56, 189, 248, 0.25);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(6, 182, 212, 0.12);
     border-radius: 20px;
-    max-width: 640px;
+    max-width: 780px;
     width: 100%;
+    max-height: min(92vh, 850px);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     transform: scale(0.94) translateY(12px);
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
     font-family: inherit;
     position: relative;
+    margin: auto;
 }
 
 .tyre-modal-overlay.active .tyre-modal-dialog {
@@ -1084,11 +1114,12 @@ body {
 .tyre-modal-header {
     background: rgb(7, 7, 7);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 18px 24px;
+    padding: clamp(12px, 2.5vw, 18px) clamp(16px, 3vw, 24px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
+    flex-shrink: 0;
 }
 
 .tyre-modal-header::before {
@@ -1109,7 +1140,7 @@ body {
 
 .tyre-modal-title h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 3vw, 1.15rem);
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -1141,6 +1172,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .tyre-modal-close:hover {
@@ -1151,14 +1183,31 @@ body {
 }
 
 .tyre-modal-body {
-    padding: 22px 24px;
+    padding: clamp(14px, 2.5vw, 22px) clamp(16px, 3vw, 24px);
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: clamp(12px, 2vw, 18px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Custom scrollbar para o corpo do modal */
+.tyre-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.tyre-modal-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+.tyre-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+.tyre-modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .tyre-modal-intro {
-    font-size: 0.8rem;
+    font-size: clamp(0.72rem, 2vw, 0.8rem);
     color: #94a3b8;
     line-height: 1.45;
     margin: 0;
@@ -1166,14 +1215,8 @@ body {
 
 .tyre-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-@media (max-width: 600px) {
-    .tyre-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: clamp(8px, 1.5vw, 12px);
 }
 
 .tyre-card {
@@ -1189,6 +1232,7 @@ body {
     transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     text-align: left;
     user-select: none;
+    min-width: 0;
 }
 
 .tyre-card:hover {
@@ -1202,6 +1246,13 @@ body {
     box-shadow: 0 0 20px var(--compound-glow, rgba(6, 182, 212, 0.35));
     border-color: var(--compound-color, #38bdf8);
     background: var(--compound-bg, rgba(6, 182, 212, 0.12));
+}
+
+.tyre-card.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(70%);
 }
 
 /* Cores específicas de cada composto */
@@ -1257,6 +1308,7 @@ body {
     background: rgba(0, 0, 0, 0.35);
     border: 1.5px solid var(--compound-color);
     box-shadow: 0 0 10px var(--compound-glow);
+    flex-shrink: 0;
 }
 
 .tyre-icon-wrap img {
@@ -1311,19 +1363,20 @@ body {
 .tyre-modal-footer {
     background: rgb(7, 7, 7);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 14px 24px;
+    padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .tyre-status-info {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.82rem;
+    font-size: clamp(0.74rem, 2vw, 0.82rem);
     color: #94a3b8;
 }
 
@@ -1333,6 +1386,7 @@ body {
     border-radius: 50%;
     display: inline-block;
     box-shadow: 0 0 8px currentColor;
+    flex-shrink: 0;
 }
 
 .tyre-footer-actions {
@@ -1383,5 +1437,76 @@ body {
     background: #38bdf8;
     box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
     transform: translateY(-1px);
+}
+
+/* =====================================================================
+   RESPONSIVIDADE DO MODAL
+   ===================================================================== */
+@media (max-width: 640px) {
+    .tyre-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .tyre-card {
+        padding: 10px 8px;
+        gap: 6px;
+        border-radius: 10px;
+    }
+
+    .tyre-card-name {
+        font-size: 0.82rem;
+    }
+
+    .tyre-card-desc {
+        font-size: 0.65rem;
+        line-height: 1.22;
+    }
+
+    .tyre-icon-wrap {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+    }
+
+    .tyre-icon-wrap img {
+        width: 15px;
+        height: 15px;
+    }
+
+    .tyre-card-stats {
+        padding: 4px 6px;
+        font-size: 0.62rem;
+    }
+
+    .tyre-status-info {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .tyre-footer-actions {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .btn-tyre-reset, .btn-tyre-close {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 420px) {
+    .tyre-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tyre-modal-dialog {
+        border-radius: 14px;
+    }
 }
 

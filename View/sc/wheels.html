@@ -18,7 +18,10 @@
 <body>
 
     <div class="header">
-        <h2>HYPERCORSA - Telemetria em Tempo Real</h2>
+        <div class="header-brand">
+            <img src="../img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
+            <h1 class="header-tab-name">RODAS</h1>
+        </div>
         <div class="header-actions">
             <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
         </div>
@@ -288,7 +291,7 @@
                     </div>
 
                     <!-- Intermediário -->
-                    <div id="compoundCard-intermediate" onclick="setCompound('intermediate')" class="tyre-card intermediate">
+                    <div id="compoundCard-intermediate" class="tyre-card intermediate disabled" title="Indisponível">
                         <div class="tyre-card-header">
                             <div class="tyre-icon-wrap">
                                 <img src="../img/wheel.png" alt="Intermediário">
