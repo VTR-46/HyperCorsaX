@@ -76,6 +76,21 @@ const pedalsChart = new Chart(ctxPedals, {
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
 });
 
+// Grafico de Suspensão
+const ctxSuspension = document.getElementById('suspensionChart').getContext('2d');
+const suspensionChart = new Chart(ctxSuspension, {
+    type: 'line',
+    data: {
+        datasets: [
+            { label: 'FL', data: [], borderColor: '#FF33A1', borderWidth: 2 },
+            { label: 'FR', data: [], borderColor: '#33FFA1', borderWidth: 2 },
+            { label: 'RL', data: [], borderColor: '#33A1FF', borderWidth: 2 },
+            { label: 'RR', data: [], borderColor: '#F3FF33', borderWidth: 2 }
+        ]
+    },
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -2, max: 30, ...commonOptions.scales.y } } }
+});
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const hexToRgb = (hex) => {
@@ -335,6 +350,34 @@ const updateMeterGBC = (fillId, valueId, value, min, max, suffix, color) => {
 // ==========================================
 const ws = new WebSocket('ws://localhost:8765');
 
+const updateGForceCircle = (dotId, xValId, yValId, zValId, data) => {
+    const dot = document.getElementById(dotId);
+    const xLabel = document.getElementById(xValId);
+    const yLabel = document.getElementById(yValId);
+    const zLabel = document.getElementById(zValId);
+
+    if (!dot || !xLabel) return;
+
+    let gx = data.accG_x || 0;
+    let gy = data.accG_y || 0;
+    let gz = data.accG_z || 0;
+
+    xLabel.innerText = gx.toFixed(2) + " G";
+    yLabel.innerText = gy.toFixed(2) + " G";
+    zLabel.innerText = gz.toFixed(2) + " G";
+
+    const MAX_G = 3.0; // limite visual no gráfico
+    
+    // Mapear GX (-MAX a +MAX) para (0% a 100%) da largura
+    let percentX = ((clamp(gx, -MAX_G, MAX_G) + MAX_G) / (2 * MAX_G)) * 100;
+    
+    // Mapear GZ (-MAX a +MAX) para (0% a 100%) da altura
+    let percentZ = ((clamp(gz, -MAX_G, MAX_G) + MAX_G) / (2 * MAX_G)) * 100;
+    
+    dot.style.left = `${percentX}%`;
+    dot.style.top = `${percentZ}%`;
+};
+
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
@@ -349,10 +392,20 @@ ws.onmessage = function (event) {
     const speedData = wearChart.data.datasets[0].data;
     const gasData = pedalsChart.data.datasets[0].data;
     const brakeData = pedalsChart.data.datasets[1].data;
+    
+    const susFLData = suspensionChart.data.datasets[0].data;
+    const susFRData = suspensionChart.data.datasets[1].data;
+    const susRLData = suspensionChart.data.datasets[2].data;
+    const susRRData = suspensionChart.data.datasets[3].data;
 
     speedData.push({ x: t, y: data.speed });
     gasData.push({ x: t, y: data.gas });
     brakeData.push({ x: t, y: data.brake });
+    
+    susFLData.push({ x: t, y: data.suspensionTravelFL * 100});
+    susFRData.push({ x: t, y: data.suspensionTravelFR * 100});
+    susRLData.push({ x: t, y: data.suspensionTravelRL * 100});
+    susRRData.push({ x: t, y: data.suspensionTravelRR * 100 });
 
     // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
     const tempoLimite = t - (janelaTempo + 5);
@@ -360,6 +413,11 @@ ws.onmessage = function (event) {
         speedData.shift();
         gasData.shift();
         brakeData.shift();
+        
+        susFLData.shift();
+        susFRData.shift();
+        susRLData.shift();
+        susRRData.shift();
     }
     // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
@@ -370,6 +428,9 @@ ws.onmessage = function (event) {
 
         pedalsChart.options.scales.x.min = minX;
         pedalsChart.options.scales.x.max = t;
+        
+        suspensionChart.options.scales.x.min = minX;
+        suspensionChart.options.scales.x.max = t;
     }
 
     updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 0, 130, ' L', '#0004FF', '#FF0000');
@@ -386,8 +447,11 @@ ws.onmessage = function (event) {
     updateMeterGBC('brakeFill', 'brakeValue', data.brake * 100 ?? 0, 0, 100, ' %', '#DE0000');
     updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#000BFF');
 
+    updateGForceCircle('gforce-dot', 'gforce-x-val', 'gforce-y-val', 'gforce-z-val', data);
+
     wearChart.update('none');
     pedalsChart.update('none');
+    suspensionChart.update('none');
 };
 
 ws.onopen = () => console.log("Conectado à telemetria!");

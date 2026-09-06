@@ -3,8 +3,8 @@
    ========================================== */
 
 .compare-control-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin: 20px auto;
     background-color: #1e1e1e;
     padding: 20px;
@@ -113,8 +113,8 @@
 }
 
 .metadata-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin: 20px auto;
     background-color: #1e1e1e;
     padding: 20px;
@@ -156,8 +156,8 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
-    width: 90vw;
-    max-width: 1400px;
+    width: 98vw;
+    max-width: 98vw;
     margin: 20px auto;
     padding-bottom: 40px;
 }

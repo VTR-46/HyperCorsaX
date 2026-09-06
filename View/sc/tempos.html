@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperCorsaX - TEMPOS</title>
+
+    <link rel="stylesheet" href="../Style/wb.css">
+    <link rel="stylesheet" href="../src/output.css">
+</head>
+
+<body>
+
+    <!-- ══════════════════ HEADER ══════════════════ -->
+    <div class="header">
+        <div class="header-brand">
+            <img src="../img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
+            <h1 class="header-tab-name">TEMPOS</h1>
+        </div>
+        <div class="header-actions">
+            <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
+            <button class="btn-clear" onclick="clearSession()">🗑 LIMPAR SESSÃO</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════ BARRA DE NAVEGAÇÃO ══════════════════ -->
+    <section id="headerSectionT" class="headerSectionT mt-5 w-full rounded-2xl bg-slate-900/80 p-4">
+
+        <a href="./engine.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/engine.png" alt="Powertrain" class="h-10 w-10 -xlp-1.5">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">POWERTRAIN</span>
+        </a>
+
+        <a href="./control.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/steeringWheel.png" alt="Controle" class="h-10 w-10 -xlp-1.5">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">CONTROLE</span>
+        </a>
+
+        <a href="./wheels.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/wheel.png" alt="Rodas" class="h-10 w-10 -xlp-1.5">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">RODAS</span>
+        </a>
+
+        <a href="../compare.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-400 hover:from-yellow-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/clock.png" alt="Comparar" class="h-10 w-10 -xlp-1.5">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">COMPARAR</span>
+        </a>
+
+        <!-- Tempos — ativo (borda amarela) -->
+        <a href="./tempos.html"
+            class="group inline-flex items-center gap-3 border border-amber-300 bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300">
+            <img src="../img/CompTime.png" alt="Tempos" class="h-10 w-10 -xlp-1.5">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">TEMPOS</span>
+        </a>
+
+    </section>
+
+    <br>
+
+    <!-- ══════════════════ MODAL DE RESET DE SESSÃO ══════════════════ -->
+    <div id="t-reset-modal" class="tempos-modal-overlay" style="display: none;">
+        <div class="tempos-modal">
+            <h3>Nova Sessão Detectada</h3>
+            <p>Parece que o jogo foi reiniciado ou você entrou em uma nova sessão. O que deseja fazer com as voltas registradas anteriormente?</p>
+            <div class="tempos-modal-actions">
+                <button class="btn-keep" onclick="keepPreviousData()">Manter Dados Anteriores</button>
+                <button class="btn-clear-modal" onclick="startNewSession()">Limpar e Começar Nova Sessão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ BANNER DE DADOS RESTAURADOS ══════════════════ -->
+    <div id="t-restored-banner" class="tempos-banner" style="display: none;">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>Dados da sessão anterior restaurados da memória.</span>
+    </div>
+
+    <!-- ══════════════════ PAINEL VOLTA ATUAL ══════════════════ -->
+    <section class="tempos-current-panel">
+
+        <!-- Info geral -->
+        <div class="tempos-info-strip">
+            <div class="lap-block">
+                <span class="lap-label">SESSÃO</span>
+                <span id="t-session" class="lap-value">--</span>
+            </div>
+            <div class="lap-block">
+                <span class="lap-label">VOLTA</span>
+                <span id="t-lap-count" class="lap-value">-- / --</span>
+            </div>
+            <div class="lap-block">
+                <span class="lap-label">POS</span>
+                <span id="t-pos" class="lap-value">P--</span>
+            </div>
+            <div class="lap-block lap-block-best">
+                <span class="lap-label">MELHOR</span>
+                <span id="t-best" class="lap-value">--:--.---</span>
+            </div>
+        </div>
+
+        <!-- Cronômetro + indicador de setor -->
+        <div class="tempos-chrono-block">
+
+            <div class="tempos-sector-indicators">
+                <div class="tempos-sector-slot">
+                    <div id="t-sector-dot-0" class="sector-dot sector-dot-pending"></div>
+                    <span class="sector-slot-label">S1</span>
+                </div>
+                <div class="tempos-sector-slot">
+                    <div id="t-sector-dot-1" class="sector-dot sector-dot-pending"></div>
+                    <span class="sector-slot-label">S2</span>
+                </div>
+                <div class="tempos-sector-slot">
+                    <div id="t-sector-dot-2" class="sector-dot sector-dot-pending"></div>
+                    <span class="sector-slot-label">S3</span>
+                </div>
+            </div>
+
+            <div class="tempos-chrono-display">
+                <div class="tempos-sector-badge" id="t-cur-sector">S1</div>
+                <div id="t-cur-time" class="tempos-chrono-time">--:--.---</div>
+                <div class="tempos-split-row">
+                    <span class="tempos-split-label">SPLIT</span>
+                    <span id="t-split" class="tempos-split-value">--:--.---</span>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ══════════════════ LEGENDA DE CORES ══════════════════ -->
+    <section class="tempos-legend">
+        <div class="legend-item">
+            <span class="legend-dot legend-purple"></span>
+            <span class="legend-text">Melhor Absoluto (sessão)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot legend-green"></span>
+            <span class="legend-text">Melhor Pessoal</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot legend-yellow"></span>
+            <span class="legend-text">Acima do melhor</span>
+        </div>
+    </section>
+
+    <!-- ══════════════════ TABELA DE HISTÓRICO ══════════════════ -->
+    <section class="tempos-history-panel">
+        <div class="tempos-table-wrap">
+            <table class="tempos-table" id="t-lap-table">
+                <thead>
+                    <tr>
+                        <th class="th-lap">VOLTA</th>
+                        <th class="th-sector">SETOR 1</th>
+                        <th class="th-sector">SETOR 2</th>
+                        <th class="th-sector">SETOR 3</th>
+                        <th class="th-total">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody id="t-lap-tbody">
+                    <!-- Linhas inseridas via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Estado vazio -->
+        <div id="t-empty-state" class="tempos-empty">
+            <svg class="tempos-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 6v6l4 2M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+            </svg>
+            <p>Nenhuma volta registrada ainda.</p>
+            <p class="tempos-empty-sub">Complete uma volta no Assetto Corsa para começar.</p>
+        </div>
+    </section>
+
+    <script src="../JS/wbScriptTempos.js"></script>
+
+    <!-- Esconde/exibe o estado vazio conforme a tabela tem conteúdo -->
+    <script>
+        const _tbody = document.getElementById('t-lap-tbody');
+        const _empty = document.getElementById('t-empty-state');
+        const _obs = new MutationObserver(() => {
+            _empty.style.display = _tbody.children.length > 0 ? 'none' : 'flex';
+        });
+        _obs.observe(_tbody, { childList: true });
+    </script>
+
+</body>
+
+</html>
+

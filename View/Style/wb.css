@@ -11,8 +11,8 @@ body {
 }
 
 .header {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -71,14 +71,40 @@ body {
 }
 
 .header {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     gap: 10px;
     flex-wrap: wrap;
+}
+
+.header-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.header-logo {
+    height: 38px;
+    width: auto;
+    max-width: min(360px, 60vw);
+    object-fit: contain;
+    display: block;
+}
+
+.header-tab-name {
+    margin: 0;
+    padding: 0 0 0 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #f1f5f9;
+    line-height: 1.2;
 }
 
 .header-actions {
@@ -91,8 +117,8 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
 }
 
 .chart-container {
@@ -106,8 +132,8 @@ body {
 }
 
 .meter-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background-color: #1e1e1e;
     padding: 16px;
@@ -117,8 +143,8 @@ body {
 }
 
 .meter-panel-2 {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background-color: #1e1e1e;
     padding: 16px;
@@ -374,8 +400,8 @@ body {
 }
 
 .damage-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background: linear-gradient(180deg, #1f1f1f 0%, #161616 100%);
     padding: 16px;
@@ -533,8 +559,8 @@ body {
 
 .headerSectionT{
 
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-top: 20px;
     background-color: #1e1e1e;
     padding: 16px;
@@ -585,8 +611,8 @@ body {
 
 /* ===================== PAINEL TEMPOS DE VOLTA ===================== */
 .lap-panel {
-    width: 90vw;
-    max-width: 1200px;
+    width: 98vw;
+    max-width: 98vw;
     margin-bottom: 16px;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -655,3 +681,832 @@ body {
     .lap-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .lap-value { font-size: 0.95rem; }
 }
+
+/* =====================================================================
+   PÁGINA TEMPOS — Estilos
+   ===================================================================== */
+
+/* Status WebSocket */
+.ws-status {
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid currentColor;
+}
+.ws-ok  { color: #22c55e; border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.07); }
+.ws-off { color: #6b7280; border-color: rgba(107,114,128,0.3); background: rgba(107,114,128,0.07); }
+
+/* Botão limpar sessão */
+.btn-clear {
+    background-color: #1c1c1c;
+    color: #ef4444;
+    border: 2px solid #ef4444;
+    padding: 8px 18px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+.btn-clear:hover {
+    background-color: #ef4444;
+    color: #fff;
+}
+
+/* ── Painel Volta Atual ── */
+.tempos-current-panel {
+    width: 98vw;
+    max-width: 98vw;
+    background-color: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+.tempos-info-strip {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Cronômetro + Setores ── */
+.tempos-chrono-block {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.tempos-sector-indicators {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.tempos-sector-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.sector-slot-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: #555;
+    text-transform: uppercase;
+}
+
+/* Bolinhas de setor */
+.sector-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+.sector-dot-pending { background: #2a2a2a; border: 2px solid #3a3a3a; }
+.sector-dot-active  {
+    background: #facc15;
+    border: 2px solid #fde68a;
+    box-shadow: 0 0 10px rgba(250,204,21,0.6);
+    animation: sector-pulse 0.9s infinite alternate;
+}
+.sector-dot-done    { background: #22c55e; border: 2px solid #4ade80; }
+
+@keyframes sector-pulse {
+    from { box-shadow: 0 0 6px rgba(250,204,21,0.5); }
+    to   { box-shadow: 0 0 18px rgba(250,204,21,0.9); }
+}
+
+.tempos-chrono-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tempos-sector-badge {
+    font-size: 0.7rem;
+    font-weight: bold;
+    letter-spacing: 0.2em;
+    color: #facc15;
+    text-transform: uppercase;
+}
+
+.tempos-chrono-time {
+    font-size: 2.8rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: #4ecdc4;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.tempos-split-row {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+.tempos-split-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: #555;
+    text-transform: uppercase;
+}
+.tempos-split-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #FF9F40;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Legenda de Cores ── */
+.tempos-legend {
+    width: 98vw;
+    max-width: 98vw;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.legend-purple { background: #a855f7; box-shadow: 0 0 6px rgba(168,85,247,0.6); }
+.legend-green  { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.6); }
+.legend-yellow { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.5); }
+
+.legend-text {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.05em;
+}
+
+/* ── Painel Histórico ── */
+.tempos-history-panel {
+    width: 98vw;
+    max-width: 98vw;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    margin-bottom: 40px;
+    min-height: 200px;
+    position: relative;
+}
+
+.tempos-table-wrap {
+    overflow-x: auto;
+}
+
+.tempos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.tempos-table th {
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: #555;
+    text-transform: uppercase;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.tempos-table th.th-lap   { text-align: left; }
+.tempos-table th.th-total { border-left: 1px solid #2a2a2a; }
+
+.tempos-table td {
+    padding: 9px 14px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-bottom: 1px solid #1a1a1a;
+    transition: background-color 0.15s;
+}
+
+.td-lap-num {
+    text-align: left !important;
+    color: #555;
+    font-size: 0.85rem !important;
+    font-weight: normal !important;
+}
+
+.td-sector {
+    letter-spacing: 0.04em;
+}
+
+.td-total {
+    border-left: 1px solid #2a2a2a;
+}
+
+.td-unknown { color: #333 !important; }
+
+/* ── Cores F1 ── */
+.sector-purple {
+    color: #8f17ff !important;
+    text-shadow: 0 0 8px rgba(168,85,247,0.5);
+}
+.sector-green {
+    color: #00d34e !important;
+    text-shadow: 0 0 8px rgba(34,197,94,0.4);
+}
+.sector-yellow {
+    color: #fffb00 !important;
+}
+
+/* ── Flash em nova volta ── */
+.lap-row-flash td {
+    animation: rowFlash 1.5s ease-out;
+}
+@keyframes rowFlash {
+    0%   { background-color: rgba(250,204,21,0.22); }
+    100% { background-color: transparent; }
+}
+
+/* ── Estado vazio ── */
+.tempos-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 0;
+    color: #333;
+    text-align: center;
+}
+.tempos-empty-icon {
+    width: 48px;
+    height: 48px;
+    stroke: #2a2a2a;
+}
+.tempos-empty-sub {
+    font-size: 0.8rem;
+    color: #2a2a2a;
+}
+
+/* ── Responsividade ── */
+@media (max-width: 650px) {
+    .tempos-chrono-time { font-size: 2rem; }
+    .tempos-current-panel { padding: 14px; }
+    .tempos-chrono-block { gap: 16px; }
+}
+
+/* ── Banner de Restauração ── */
+.tempos-banner {
+    width: 98vw;
+    max-width: 98vw;
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #4ade80;
+    padding: 10px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    animation: slideDown 0.3s ease-out;
+}
+.tempos-banner svg {
+    width: 20px;
+    height: 20px;
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Modal de Nova Sessão ── */
+.tempos-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tempos-modal {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    text-align: center;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tempos-modal h3 {
+    color: #eab308;
+    margin-top: 0;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.tempos-modal p {
+    color: #bbb;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 16px 0 24px;
+}
+.tempos-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tempos-modal-actions button {
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: inherit;
+    border: none;
+}
+.btn-keep {
+    background-color: #2a2a4a;
+    color: #fff;
+}
+.btn-keep:hover {
+    background-color: #3a3a6a;
+}
+.btn-clear-modal {
+    background-color: #ef4444;
+    color: #fff;
+}
+.btn-clear-modal:hover {
+    background-color: #dc2626;
+}
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   MODAL DE AJUSTE & CALIBRAÇÃO DE PNEUS (TELEMETRIA HYPERCORSA)
+   ═════════════════════════════════════════════════════════════════ */
+.tyre-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(8, 12, 22, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.tyre-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.tyre-modal-dialog {
+    background: rgb(7, 7, 7);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(6, 182, 212, 0.12);
+    border-radius: 20px;
+    max-width: 780px;
+    width: 100%;
+    max-height: min(92vh, 850px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.94) translateY(12px);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    font-family: inherit;
+    position: relative;
+    margin: auto;
+}
+
+.tyre-modal-overlay.active .tyre-modal-dialog {
+    transform: scale(1) translateY(0);
+}
+
+.tyre-modal-header {
+    background: rgb(7, 7, 7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: clamp(12px, 2.5vw, 18px) clamp(16px, 3vw, 24px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.tyre-modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #06b6d4 0%, #eab308 50%, #ef4444 100%);
+}
+
+.tyre-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tyre-modal-title h3 {
+    margin: 0;
+    font-size: clamp(0.95rem, 3vw, 1.15rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #f8fafc;
+}
+
+.tyre-modal-badge {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    color: #38bdf8;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.tyre-modal-close {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.tyre-modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    transform: rotate(90deg);
+}
+
+.tyre-modal-body {
+    padding: clamp(14px, 2.5vw, 22px) clamp(16px, 3vw, 24px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2vw, 18px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Custom scrollbar para o corpo do modal */
+.tyre-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.tyre-modal-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+.tyre-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+.tyre-modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.tyre-modal-intro {
+    font-size: clamp(0.72rem, 2vw, 0.8rem);
+    color: #94a3b8;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.tyre-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: clamp(8px, 1.5vw, 12px);
+}
+
+.tyre-card {
+    background: rgba(30, 41, 59, 0.45);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: left;
+    user-select: none;
+    min-width: 0;
+}
+
+.tyre-card:hover {
+    transform: translateY(-3px);
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.tyre-card.selected {
+    box-shadow: 0 0 20px var(--compound-glow, rgba(6, 182, 212, 0.35));
+    border-color: var(--compound-color, #38bdf8);
+    background: var(--compound-bg, rgba(6, 182, 212, 0.12));
+}
+
+.tyre-card.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(70%);
+}
+
+/* Cores específicas de cada composto */
+.tyre-card.c5 {
+    --compound-color: #ef4444;
+    --compound-glow: rgba(239, 68, 68, 0.4);
+    --compound-bg: rgba(239, 68, 68, 0.12);
+}
+.tyre-card.c4 {
+    --compound-color: #f97316;
+    --compound-glow: rgba(249, 115, 22, 0.4);
+    --compound-bg: rgba(249, 115, 22, 0.12);
+}
+.tyre-card.c3 {
+    --compound-color: #eab308;
+    --compound-glow: rgba(234, 179, 8, 0.4);
+    --compound-bg: rgba(234, 179, 8, 0.12);
+}
+.tyre-card.c2 {
+    --compound-color: #cbd5e1;
+    --compound-glow: rgba(203, 213, 225, 0.35);
+    --compound-bg: rgba(203, 213, 225, 0.1);
+}
+.tyre-card.c1 {
+    --compound-color: #f1f5f9;
+    --compound-glow: rgba(241, 245, 249, 0.35);
+    --compound-bg: rgba(241, 245, 249, 0.1);
+}
+.tyre-card.intermediate {
+    --compound-color: #22c55e;
+    --compound-glow: rgba(34, 197, 94, 0.4);
+    --compound-bg: rgba(34, 197, 94, 0.12);
+}
+.tyre-card.wet {
+    --compound-color: #3b82f6;
+    --compound-glow: rgba(59, 130, 246, 0.4);
+    --compound-bg: rgba(59, 130, 246, 0.12);
+}
+
+.tyre-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tyre-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1.5px solid var(--compound-color);
+    box-shadow: 0 0 10px var(--compound-glow);
+    flex-shrink: 0;
+}
+
+.tyre-icon-wrap img {
+    width: 20px;
+    height: 20px;
+}
+
+.tyre-badge-active {
+    display: none;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--compound-color);
+    color: #0c1322;
+    padding: 2px 7px;
+    border-radius: 999px;
+}
+
+.tyre-card.selected .tyre-badge-active {
+    display: inline-block;
+}
+
+.tyre-card-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.tyre-card-desc {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    line-height: 1.3;
+}
+
+.tyre-card-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 0.68rem;
+    color: #cbd5e1;
+    font-variant-numeric: tabular-nums;
+}
+
+.tyre-modal-footer {
+    background: rgb(7, 7, 7);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.tyre-status-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(0.74rem, 2vw, 0.82rem);
+    color: #94a3b8;
+}
+
+.tyre-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px currentColor;
+    flex-shrink: 0;
+}
+
+.tyre-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-tyre-reset {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-tyre-reset:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: #ef4444;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-tyre-close {
+    background: #0ea5e9;
+    border: 1px solid #38bdf8;
+    color: #0c1322;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.btn-tyre-close:hover {
+    background: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    transform: translateY(-1px);
+}
+
+/* =====================================================================
+   RESPONSIVIDADE DO MODAL
+   ===================================================================== */
+@media (max-width: 640px) {
+    .tyre-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .tyre-card {
+        padding: 10px 8px;
+        gap: 6px;
+        border-radius: 10px;
+    }
+
+    .tyre-card-name {
+        font-size: 0.82rem;
+    }
+
+    .tyre-card-desc {
+        font-size: 0.65rem;
+        line-height: 1.22;
+    }
+
+    .tyre-icon-wrap {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+    }
+
+    .tyre-icon-wrap img {
+        width: 15px;
+        height: 15px;
+    }
+
+    .tyre-card-stats {
+        padding: 4px 6px;
+        font-size: 0.62rem;
+    }
+
+    .tyre-status-info {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .tyre-footer-actions {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .btn-tyre-reset, .btn-tyre-close {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 420px) {
+    .tyre-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tyre-modal-dialog {
+        border-radius: 14px;
+    }
+}
+

@@ -48,7 +48,7 @@ async def enviar_telemetria(websocket):
                     # Mantem a posicao original dos campos; remover vazios desloca os indices de lap timing.
                     valores = linha.split(',')
 
-                    if len(valores) >= 36:
+                    if len(valores) >= 52:
                         try:
                             # Empacota os dados essenciais em um JSON
                             payload = {
@@ -59,10 +59,14 @@ async def enviar_telemetria(websocket):
                                 "brake": float(valores[4]),
                                 "clutch": float(valores[35]),
                                 
-                                #Combustivel
                                 "fuel": float(valores[5]),
                                 
                                 "steer": float(valores[6]),
+
+                                # Força G
+                                "accG_x": float(valores[8]),
+                                "accG_y": float(valores[9]),
+                                "accG_z": float(valores[10]),
                                 
                                 # Temperaturas dos Pneus (Índices 11 ao 14)
                                 "tyreFL": float(valores[11]),
@@ -105,6 +109,12 @@ async def enviar_telemetria(websocket):
                                 
                                 #DRS
                                 "drs": float(valores[7]),
+                                
+                                #Suspensao (indices 48..51 apos inclusao de iLastTime/lastSectorTime)
+                                "suspensionTravelFL": float(valores[48]),
+                                "suspensionTravelFR": float(valores[49]),
+                                "suspensionTravelRL": float(valores[50]),
+                                "suspensionTravelRR": float(valores[51]),
 
                                 # ===== TEMPOS DE VOLTA (area graphics) =====
                                 # Indices 36-45 sao adicionados pelo readT.c
@@ -118,8 +128,26 @@ async def enviar_telemetria(websocket):
                                 "numberOfLaps":    int(valores[43]) if len(valores) > 43 and valores[43].strip().isdigit() else 0,
                                 "status":           int(valores[44]) if len(valores) > 44 and valores[44].strip().isdigit() else 0,
                                 "session":         int(valores[45]) if len(valores) > 45 and valores[45].strip().isdigit() else 0,
-                    
-                            }
+                                # 46..47: iLastTime e lastSectorTime em ms (inteiros, -1 = inválido)
+                                "iLastTime":       int(valores[46]) if len(valores) > 46 and valores[46].strip().lstrip('-').isdigit() else -1,
+                                "lastSectorTime":  int(valores[47]) if len(valores) > 47 and valores[47].strip().lstrip('-').isdigit() else -1,
+                                
+                                # tyreTempI, M, O (indices 52..63)
+                                "tyreTempIFL": float(valores[52]) if len(valores) > 52 else 0.0,
+                                "tyreTempIFR": float(valores[53]) if len(valores) > 53 else 0.0,
+                                "tyreTempIRL": float(valores[54]) if len(valores) > 54 else 0.0,
+                                "tyreTempIRR": float(valores[55]) if len(valores) > 55 else 0.0,
+                                
+                                "tyreTempMFL": float(valores[56]) if len(valores) > 56 else 0.0,
+                                "tyreTempMFR": float(valores[57]) if len(valores) > 57 else 0.0,
+                                "tyreTempMRL": float(valores[58]) if len(valores) > 58 else 0.0,
+                                "tyreTempMRR": float(valores[59]) if len(valores) > 59 else 0.0,
+                                
+                                "tyreTempOFL": float(valores[60]) if len(valores) > 60 else 0.0,
+                                "tyreTempOFR": float(valores[61]) if len(valores) > 61 else 0.0,
+                                "tyreTempORL": float(valores[62]) if len(valores) > 62 else 0.0,
+                                "tyreTempORR": float(valores[63]) if len(valores) > 63 else 0.0,
+                    }
                             
                             # Envia para o navegador
                             await websocket.send(json.dumps(payload))
