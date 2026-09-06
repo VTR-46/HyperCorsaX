@@ -350,6 +350,34 @@ const updateMeterGBC = (fillId, valueId, value, min, max, suffix, color) => {
 // ==========================================
 const ws = new WebSocket('ws://localhost:8765');
 
+const updateGForceCircle = (dotId, xValId, yValId, zValId, data) => {
+    const dot = document.getElementById(dotId);
+    const xLabel = document.getElementById(xValId);
+    const yLabel = document.getElementById(yValId);
+    const zLabel = document.getElementById(zValId);
+
+    if (!dot || !xLabel) return;
+
+    let gx = data.accG_x || 0;
+    let gy = data.accG_y || 0;
+    let gz = data.accG_z || 0;
+
+    xLabel.innerText = gx.toFixed(2) + " G";
+    yLabel.innerText = gy.toFixed(2) + " G";
+    zLabel.innerText = gz.toFixed(2) + " G";
+
+    const MAX_G = 3.0; // limite visual no gráfico
+    
+    // Mapear GX (-MAX a +MAX) para (0% a 100%) da largura
+    let percentX = ((clamp(gx, -MAX_G, MAX_G) + MAX_G) / (2 * MAX_G)) * 100;
+    
+    // Mapear GZ (-MAX a +MAX) para (0% a 100%) da altura
+    let percentZ = ((clamp(gz, -MAX_G, MAX_G) + MAX_G) / (2 * MAX_G)) * 100;
+    
+    dot.style.left = `${percentX}%`;
+    dot.style.top = `${percentZ}%`;
+};
+
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
@@ -418,6 +446,8 @@ ws.onmessage = function (event) {
     updateMeterGBC('gasFill', 'gasValue', data.gas * 100 ?? 0, 0, 100, ' %', '#18EB00');
     updateMeterGBC('brakeFill', 'brakeValue', data.brake * 100 ?? 0, 0, 100, ' %', '#DE0000');
     updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#000BFF');
+
+    updateGForceCircle('gforce-dot', 'gforce-x-val', 'gforce-y-val', 'gforce-z-val', data);
 
     wearChart.update('none');
     pedalsChart.update('none');

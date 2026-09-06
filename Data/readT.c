@@ -183,7 +183,8 @@ int main()
                 "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.1f,"     // 11..20 (10)
                 "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,"     // 21..30 (10)
                 "%.1f,%.1f,%f,%f,%f,"                                     // 31..35 (5)
-                "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f\n", // 36..51 (16)
+                "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f," // 36..51 (16)
+                "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n", // 52..63 (12)
                 physics->speedKmh,
                 (float)physics->rpms,
                 physics->gear - 1,
@@ -246,7 +247,11 @@ int main()
                 physics->suspensionTravel[0],
                 physics->suspensionTravel[1],
                 physics->suspensionTravel[2],
-                physics->suspensionTravel[3]);
+                physics->suspensionTravel[3],
+                // 52..63: tyreTempI, tyreTempM, tyreTempO
+                physics->tyreTempI[0], physics->tyreTempI[1], physics->tyreTempI[2], physics->tyreTempI[3],
+                physics->tyreTempM[0], physics->tyreTempM[1], physics->tyreTempM[2], physics->tyreTempM[3],
+                physics->tyreTempO[0], physics->tyreTempO[1], physics->tyreTempO[2], physics->tyreTempO[3]);
         }
         else
         {
@@ -256,7 +261,8 @@ int main()
                 "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0000,0.0,"
                 "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,"
                 "0.0,0.0,0.000000,0.000000,0.000000,"
-                "%s,%s,%s,%s,0,0,0,0,0,0,-1,-1,0.00,0.00,0.00,0.00\n",
+                "%s,%s,%s,%s,0,0,0,0,0,0,-1,-1,0.00,0.00,0.00,0.00,"
+                "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0\n",
                 LAP_EMPTY, LAP_EMPTY, LAP_EMPTY, LAP_EMPTY);
         }
 

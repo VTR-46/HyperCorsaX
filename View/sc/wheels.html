@@ -80,9 +80,12 @@
 
             <div class="meter-esquerda">
                 <div id="tyrePsiValueFL" class="meter-value">0 psi</div>
-                <div id="tyreTempValueFL" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreFLFill" class="meter-fill" style="background: #0004FF;"></div>
+                <div id="tyreTempValueFL" class="meter-value" style="font-size: 0.85em;"><span id="tyreTempO_FL" style="color:#aaa;">0</span> | <span id="tyreTempM_FL" style="color:#fff;">0</span> | <span id="tyreTempI_FL" style="color:#aaa;">0</span> °C</div>
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <div id="tyreCoreTempFL" style="font-size: 1.2em; font-weight: bold; width: 45px; text-align: right;">0°C</div>
+                    <div class="meter-box" id="tyreBoxFL" style="flex: 1; transition: border-color 0.3s, box-shadow 0.3s; border-width: 3px;">
+                        <div id="tyreFLFill" class="meter-fill" style="background: #0004FF;"></div>
+                    </div>
                 </div>
                 <div class="meter-label">Pneu FL</div>
                 <div id="tyreFLValue" class="meter-value">0°C</div>
@@ -104,9 +107,12 @@
 
             <div class="meter-direita">
                 <div id="tyrePsiValueFR" class="meter-value">0 psi</div>
-                <div id="tyreTempValueFR" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreFRFill" class="meter-fill" style="background: #0004FF;"></div>
+                <div id="tyreTempValueFR" class="meter-value" style="font-size: 0.85em;"><span id="tyreTempI_FR" style="color:#aaa;">0</span> | <span id="tyreTempM_FR" style="color:#fff;">0</span> | <span id="tyreTempO_FR" style="color:#aaa;">0</span> °C</div>
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <div class="meter-box" id="tyreBoxFR" style="flex: 1; transition: border-color 0.3s, box-shadow 0.3s; border-width: 3px;">
+                        <div id="tyreFRFill" class="meter-fill" style="background: #0004FF;"></div>
+                    </div>
+                    <div id="tyreCoreTempFR" style="font-size: 1.2em; font-weight: bold; width: 45px; text-align: left;">0°C</div>
                 </div>
                 <div class="meter-label">Pneu FR</div>
                 <div id="tyreFRValue" class="meter-value">0°C</div>
@@ -114,9 +120,12 @@
 
             <div class="meter-esquerda">
                 <div id="tyrePsiValueRL" class="meter-value">0 psi</div>
-                <div id="tyreTempValueRL" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreRLFIll" class="meter-fill" style="background: #0004FF;"></div>
+                <div id="tyreTempValueRL" class="meter-value" style="font-size: 0.85em;"><span id="tyreTempO_RL" style="color:#aaa;">0</span> | <span id="tyreTempM_RL" style="color:#fff;">0</span> | <span id="tyreTempI_RL" style="color:#aaa;">0</span> °C</div>
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <div id="tyreCoreTempRL" style="font-size: 1.2em; font-weight: bold; width: 45px; text-align: right;">0°C</div>
+                    <div class="meter-box" id="tyreBoxRL" style="flex: 1; transition: border-color 0.3s, box-shadow 0.3s; border-width: 3px;">
+                        <div id="tyreRLFIll" class="meter-fill" style="background: #0004FF;"></div>
+                    </div>
                 </div>
                 <div class="meter-label">Pneu RL</div>
                 <div id="tyreRLValue" class="meter-value">0°C</div>
@@ -139,9 +148,12 @@
 
             <div class="meter-direita">
                 <div id="tyrePsiValueRR" class="meter-value">0 psi</div>
-                <div id="tyreTempValueRR" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreRRFIll" class="meter-fill" style="background: #0004FF;"></div>
+                <div id="tyreTempValueRR" class="meter-value" style="font-size: 0.85em;"><span id="tyreTempI_RR" style="color:#aaa;">0</span> | <span id="tyreTempM_RR" style="color:#fff;">0</span> | <span id="tyreTempO_RR" style="color:#aaa;">0</span> °C</div>
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <div class="meter-box" id="tyreBoxRR" style="flex: 1; transition: border-color 0.3s, box-shadow 0.3s; border-width: 3px;">
+                        <div id="tyreRRFIll" class="meter-fill" style="background: #0004FF;"></div>
+                    </div>
+                    <div id="tyreCoreTempRR" style="font-size: 1.2em; font-weight: bold; width: 45px; text-align: left;">0°C</div>
                 </div>
                 <div class="meter-label">Pneu RR</div>
                 <div id="tyreRRValue" class="meter-value">0°C</div>

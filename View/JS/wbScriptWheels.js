@@ -153,6 +153,15 @@ const getMeterColor = (percent, lowColor, idealColor, highColor) => {
     return mixColor(idealColor, highColor, (percent - 45) / 55);
 };
 
+const getTireTempColor = (temp) => {
+    if (temp <= 80) return '#0004FF';
+    if (temp >= 130) return '#FF0000';
+    if (temp <= 100) {
+        return mixColor('#0004FF', '#33FF00', (temp - 80) / 20);
+    }
+    return mixColor('#33FF00', '#FF0000', (temp - 100) / 20);
+};
+
 const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
     const normalized = ((value - min) / (max - min)) * 100;
     const percent = clamp(normalized, 0, 100);
@@ -179,6 +188,27 @@ const updateMeterTyreWear = (fillId, valueId, value, min, max, suffix) => {
 const updateOnlyValue = (valueId, value, suffix) => {
     const label = document.getElementById(valueId);
     label.innerText = `${value.toFixed(1)}${suffix}`;
+};
+
+const updateTireBorderAndCoreTemp = (boxId, textId, temp) => {
+    const box = document.getElementById(boxId);
+    const text = document.getElementById(textId);
+    if (box && text) {
+        const color = getTireTempColor(temp);
+        box.style.borderColor = color;
+        box.style.boxShadow = `0 0 10px ${color}88`; // 88 is roughly 50% alpha in hex
+        text.innerText = `${Math.round(temp)}°C`;
+        text.style.color = color;
+    }
+};
+
+const updateTireIMOTemp = (elementId, temp) => {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.innerText = Math.round(temp);
+        el.style.color = getTireTempColor(temp);
+        el.style.textShadow = `0 0 4px ${getTireTempColor(temp)}66`; // soft glow
+    }
 };
 
 const damageSlots = {
@@ -326,10 +356,31 @@ ws.onmessage = function (event) {
     updateOnlyValue('tyrePsiValueRL', data.tyrePressureRL ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueRR', data.tyrePressureRR ?? 0, ' psi');
 
-    updateOnlyValue('tyreTempValueFL', data.tyreFL ?? 0, ' °C');
-    updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
-    updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
-    updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
+    updateTireBorderAndCoreTemp('tyreBoxFL', 'tyreCoreTempFL', data.tyreFL ?? 0);
+    updateTireBorderAndCoreTemp('tyreBoxFR', 'tyreCoreTempFR', data.tyreFR ?? 0);
+    updateTireBorderAndCoreTemp('tyreBoxRL', 'tyreCoreTempRL', data.tyreRL ?? 0);
+    updateTireBorderAndCoreTemp('tyreBoxRR', 'tyreCoreTempRR', data.tyreRR ?? 0);
+
+    // updateOnlyValue('tyreTempValueFL', data.tyreFL ?? 0, ' °C');
+    // updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
+    // updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
+    // updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
+
+    updateTireIMOTemp('tyreTempO_FL', data.tyreTempOFL ?? 0);
+    updateTireIMOTemp('tyreTempM_FL', data.tyreTempMFL ?? 0);
+    updateTireIMOTemp('tyreTempI_FL', data.tyreTempIFL ?? 0);
+
+    updateTireIMOTemp('tyreTempI_FR', data.tyreTempIFR ?? 0);
+    updateTireIMOTemp('tyreTempM_FR', data.tyreTempMFR ?? 0);
+    updateTireIMOTemp('tyreTempO_FR', data.tyreTempOFR ?? 0);
+
+    updateTireIMOTemp('tyreTempO_RL', data.tyreTempORL ?? 0);
+    updateTireIMOTemp('tyreTempM_RL', data.tyreTempMRL ?? 0);
+    updateTireIMOTemp('tyreTempI_RL', data.tyreTempIRL ?? 0);
+
+    updateTireIMOTemp('tyreTempI_RR', data.tyreTempIRR ?? 0);
+    updateTireIMOTemp('tyreTempM_RR', data.tyreTempMRR ?? 0);
+    updateTireIMOTemp('tyreTempO_RR', data.tyreTempORR ?? 0);
 
     updateDamageMap(data);
 

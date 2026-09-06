@@ -123,6 +123,33 @@
             <p id="drs-label">OFF</p>
         </div>
 
+
+        
+        <div class="meter-gforce" style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-left: auto; padding-right: 20px;">
+            <h3>FORÇA G</h3>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- 2D G-Meter (X and Z) -->
+                <div style="position: relative; width: 150px; height: 150px; border-radius: 50%; background: #111; border: 2px solid #333; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                    <!-- Concentric circles for reference -->
+                    <div style="position: absolute; width: 100px; height: 100px; border-radius: 50%; border: 1px dashed #444;"></div>
+                    <div style="position: absolute; width: 50px; height: 50px; border-radius: 50%; border: 1px dashed #444;"></div>
+                    <!-- Crosshair -->
+                    <div style="position: absolute; width: 100%; height: 1px; background: #555;"></div>
+                    <div style="position: absolute; width: 1px; height: 100%; background: #555;"></div>
+                    
+                    <!-- The G-Dot -->
+                    <div id="gforce-dot" style="position: absolute; width: 12px; height: 12px; background: #00FF00; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: left 0.1s linear, top 0.1s linear; box-shadow: 0 0 10px #00FF00;"></div>
+                </div>
+
+                <!-- Text values -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <span style="font-size: 14px;"><span style="color:#888;">LAT (X):</span> <b id="gforce-x-val">0.00 G</b></span>
+                    <span style="font-size: 14px;"><span style="color:#888;">LONG (Z):</span> <b id="gforce-z-val">0.00 G</b></span>
+                    <span style="font-size: 14px;"><span style="color:#888;">VERT (Y):</span> <b id="gforce-y-val">1.00 G</b></span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="meter-panel-2">
@@ -175,6 +202,7 @@
             </div>
             <div id="ersValue" class="meter-value">0 %</div>
         </div>
+
 
     </div>
 
