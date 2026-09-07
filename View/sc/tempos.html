@@ -17,12 +17,16 @@
         <div class="header-brand">
             <img src="../img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
             <h1 class="header-tab-name">TEMPOS</h1>
+            <div class="header-category">
+                <img src="../img/Formula.png" alt="Formula" class="header-category-img">
+                <span class="header-category-text">FORMULA</span>
+            </div>
         </div>
         <div class="header-actions">
             <span id="lapRecordStatus" class="lap-record-status hidden"></span>
             <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
             <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>  
-            <button class="btn-clear" onclick="clearSession()">🗑 LIMPAR SESSÃO</button>
+            
         </div>
     </div>
 
@@ -193,15 +197,16 @@
         </div>
 
         <!-- Estado vazio -->
-        <div id="t-empty-state" class="tempos-empty">
+        <!-- <div id="t-empty-state" class="tempos-empty">
             <svg class="tempos-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 6v6l4 2M12 2a10 10 0 100 20A10 10 0 0012 2z" />
             </svg>
             <p>Nenhuma volta registrada ainda.</p>
             <p class="tempos-empty-sub">Complete uma volta no Assetto Corsa para começar.</p>
-        </div>
+        </div> -->
     </section>
+    <button class="btn-clear" onclick="clearSession()">🗑 LIMPAR SESSÃO</button>
 
     <script src="../JS/recorder.js"></script>
     <script src="../JS/wbScriptTempos.js"></script>

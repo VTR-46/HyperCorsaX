@@ -293,6 +293,28 @@ body {
     line-height: 1.2;
 }
 
+.header-category {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 6px;
+}
+
+.header-category-img {
+    height: 20px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.header-category-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #cbd5e1;
+}
+
 .header-actions {
     display: flex;
     gap: 10px;

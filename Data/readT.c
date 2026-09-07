@@ -360,7 +360,7 @@ int main()
             // Concatena campos 64..79 ao buffer
             char extraBuf[256];
             snprintf(extraBuf, sizeof(extraBuf),
-                ",%s,%.2f,%.2f,%d,%.2f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d,%.4f,%.2f,%.2f\n",
+                ",%s,%.2f,%.2f,%d,%.2f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d,%.4f,%.2f,%.2f,%.4f,%.4f\n",
                 sCarModel,          // 64
                 s_maxTorque,        // 65
                 s_maxPower,         // 66
@@ -376,13 +376,15 @@ int main()
                 s_hasKERS,          // 76
                 s_surfaceGrip,      // 77
                 s_windSpeed,        // 78
-                s_windDirection);   // 79
+                s_windDirection,    // 79
+                physics->rideHeight[0], // 80
+                physics->rideHeight[1]); // 81
 
             strncat(buffer, extraBuf, sizeof(buffer) - strlen(buffer) - 1);
         }
         else
         {
-            // Modo teste: 64 zeros/N/A (0..63) + 16 campos estaticos/ambiente (64..79)
+            // Modo teste: 64 zeros/N/A (0..63) + 16 campos estaticos/ambiente (64..79) + 2 rideHeight (80..81)
             sprintf(buffer,
                 "0.00,0,0,0.0000,0.0000,0.00,0.0000,0.00,0.000,0.000,0.000,"
                 "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0000,0.0,"
@@ -390,7 +392,7 @@ int main()
                 "0.0,0.0,0.000000,0.000000,0.000000,"
                 "%s,%s,%s,%s,0,0,0,0,0,0,-1,-1,0.00,0.00,0.00,0.00,"
                 "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,"
-                "TEST_CAR,0.00,0.00,0,0.00,0.0000,0.0000,0.0000,0.0000,0.0000,0,0,0,0.0000,0.00,0.00\n",
+                "TEST_CAR,0.00,0.00,0,0.00,0.0000,0.0000,0.0000,0.0000,0.0000,0,0,0,0.0000,0.00,0.00,0.00,0.00\n",
                 LAP_EMPTY, LAP_EMPTY, LAP_EMPTY, LAP_EMPTY);
         }
 

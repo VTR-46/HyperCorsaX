@@ -141,6 +141,10 @@ def parse_telemetry_line(linha):
         "surfaceGrip":      to_float(valores[77]) if len(valores) > 77 else 0.0,
         "windSpeed":        to_float(valores[78]) if len(valores) > 78 else 0.0,
         "windDirection":    to_float(valores[79]) if len(valores) > 79 else 0.0,
+        
+        # Ride Height (indices 80..81)
+        "rideHeightFront":  to_float(valores[80]) if len(valores) > 80 else 0.0,
+        "rideHeightRear":   to_float(valores[81]) if len(valores) > 81 else 0.0,
     }
 
 async def socket_receiver_loop():

@@ -88,7 +88,7 @@ const suspensionChart = new Chart(ctxSuspension, {
             { label: 'RR', data: [], borderColor: '#F3FF33', borderWidth: 2 }
         ]
     },
-    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -2, max: 30, ...commonOptions.scales.y } } }
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -2, max: 20, ...commonOptions.scales.y } } }
 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -378,6 +378,34 @@ const updateGForceCircle = (dotId, xValId, yValId, zValId, data) => {
     dot.style.top = `${percentZ}%`;
 };
 
+const updateRideHeightVis = (front, rear) => {
+    const chassis = document.getElementById('car-chassis');
+    const rhFrontLabel = document.getElementById('rh-front-val');
+    const rhRearLabel = document.getElementById('rh-rear-val');
+    
+    if(!chassis || !rhFrontLabel || !rhRearLabel) return;
+    
+    let f = front || 0;
+    let r = rear || 0;
+    
+    rhFrontLabel.innerText = (f * 1000).toFixed(1) + ' mm';
+    rhRearLabel.innerText = (r * 1000).toFixed(1) + ' mm';
+    
+    const multiplier = 1; 
+    
+    const avgHeight = (f + r) / 2;
+    // O eixo Y do CSS cresce para baixo, então multiplicamos por -1 para fazer o carro subir quando a altura aumenta.
+    // E adicionamos um offset base se necessário, mas aqui partimos do centro (-50%).
+    const translateY = -(avgHeight * multiplier);
+    
+    // Rotacao: Carro vira pra direita. Traseira na esquerda, Frente na direita.
+    // Se traseira > frente, inclina pra frente (roda horario -> angulo positivo)
+    const diff = r - f;
+    const rotateDeg = diff * 100; 
+    
+    chassis.style.transform = `translate(-50%, calc(-50% + ${translateY}px)) rotate(${rotateDeg}deg)`;
+};
+
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
@@ -451,6 +479,22 @@ ws.onmessage = function (event) {
     updateMeterGBC('clutchFill', 'clutchValue', 100 - (data.clutch * 100) ?? 0, 0, 100, ' %', '#000BFF');
 
     updateGForceCircle('gforce-dot', 'gforce-x-val', 'gforce-y-val', 'gforce-z-val', data);
+
+    let rhF = 0, rhR = 0;
+    if (data.rideHeightFront !== undefined && data.rideHeightRear !== undefined) {
+        rhF = data.rideHeightFront;
+        rhR = data.rideHeightRear;
+    } else if (data.rideHeight && data.rideHeight.length >= 2) {
+        rhF = data.rideHeight[0];
+        rhR = data.rideHeight[1];
+    } else if (data.rideHeight_0 !== undefined && data.rideHeight_1 !== undefined) {
+        rhF = data.rideHeight_0;
+        rhR = data.rideHeight_1;
+    } else {
+        rhF = (data.suspensionTravelFL + data.suspensionTravelFR) / 2 || 0;
+        rhR = (data.suspensionTravelRL + data.suspensionTravelRR) / 2 || 0;
+    }
+    updateRideHeightVis(rhF, rhR);
 
     wearChart.update('none');
     pedalsChart.update('none');
