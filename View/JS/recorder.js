@@ -23,6 +23,7 @@ const recordBtn = document.getElementById('btnLapRecord');
 // Função chamada pelo WebSocket quando novos dados chegam
 window.updateRecorderData = (data) => {
     currentSessionData = data;
+    checkGForceWarning(data);
 };
 
 // Inicia/para gravação manual (mantido para compatibilidade com F7)
@@ -392,3 +393,98 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// ==========================================
+// AVISO DE FORÇA G EXTREMA
+// ==========================================
+let lastGForceWarningTime = 0;
+
+function checkGForceWarning(data) {
+    if (!data) return;
+    let gx = data.accG_x || 0;
+    let gy = data.accG_y || 0;
+    let gz = data.accG_z || 0;
+    let gForce = Math.sqrt(gx*gx + gy*gy + gz*gz);
+
+    if (gForce >= 15) {
+        // Evitar spam de modal, abrir a cada 5 segundos no máximo
+        const now = Date.now();
+        if (now - lastGForceWarningTime > 5000) {
+            showGForceModal(gForce);
+            lastGForceWarningTime = now;
+        }
+    }
+}
+
+function showGForceModal(gForce) {
+    let modal = document.getElementById('gforce-warning-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'gforce-warning-modal';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+        modal.style.zIndex = '99999';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        
+        let content = document.createElement('div');
+        content.id = 'gforce-warning-content';
+        content.style.backgroundColor = '#111';
+        content.style.color = '#fff';
+        content.style.padding = '40px';
+        content.style.borderRadius = '15px';
+        content.style.maxWidth = '600px';
+        content.style.textAlign = 'center';
+        content.style.border = '3px solid red';
+        content.style.fontFamily = 'Arial, sans-serif';
+        content.style.boxShadow = '0 0 30px rgba(255, 0, 0, 0.5)';
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+    }
+    
+    let title = "";
+    let desc = "";
+    let color = "";
+
+    if (gForce >= 100) {
+        title = "Extrema (" + gForce.toFixed(1) + "G)";
+        desc = "Limite das forças suportadas pelo corpo e pela célula de sobrevivência. Impacto na célula de sobrevivência acima de [100G]. Bandeira vermelha imediata. Equipes médicas e de resgate enviadas.";
+        color = "#ff0000"; // Red
+    } else if (gForce >= 50) {
+        title = "Alta (" + gForce.toFixed(1) + "G)";
+        desc = "Impactos severos contra barreiras de proteção. O risco de concussão é alto.";
+        color = "#ff4500"; // OrangeRed
+    } else if (gForce >= 18) {
+        title = "Moderada - Gatilho Médico (" + gForce.toFixed(1) + "G)";
+        desc = "Visita ao Centro Médico da obrigatória no retorno aos boxes.";
+        color = "#ff8c00"; // DarkOrange
+    } else {
+        title = "Baixa / Alerta (" + gForce.toFixed(1) + "G)";
+        desc = "Verifique as condições do piloto via rádio.";
+        color = "#ffd700"; // Gold
+    }
+
+    let content = document.getElementById('gforce-warning-content');
+    content.style.borderColor = color;
+    content.style.boxShadow = '0 0 30px ' + color;
+    content.innerHTML = `
+        <h1 style="color: ${color}; margin-top: 0; font-size: 2em; text-transform: uppercase;">⚠️ Alerta de Impacto ⚠️</h1>
+        <h2 style="margin: 15px 0; font-size: 1.5em; color: #fff;">${title}</h2>
+        <p style="font-size: 1.2em; line-height: 1.6; color: #ccc;">${desc}</p>
+        <button id="gforce-btn-close" style="margin-top: 25px; padding: 12px 30px; background: ${color}; border: none; color: #000; font-weight: bold; font-size: 1.1em; cursor: pointer; border-radius: 8px; transition: 0.2s;">ENTENDIDO</button>
+    `;
+    
+    let btn = document.getElementById('gforce-btn-close');
+    btn.onmouseover = () => { btn.style.transform = 'scale(1.05)'; };
+    btn.onmouseout = () => { btn.style.transform = 'scale(1)'; };
+    btn.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    modal.style.display = 'flex';
+}
