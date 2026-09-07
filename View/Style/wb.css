@@ -1510,3 +1510,192 @@ body {
     }
 }
 
+
+/* =====================================================================
+   PAINEIS: CAR INFO + AMBIENTE (graphics.html)
+   ===================================================================== */
+
+.info-panels-row {
+    width: 98vw;
+    max-width: 98vw;
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+
+.info-panel {
+    flex: 1 1 0;
+    min-width: 0;
+    background: linear-gradient(160deg, #1a1a2e 0%, #161622 100%);
+    border: 1px solid #2a2a44;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.info-panel-title {
+    margin: 0 0 14px 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    border-bottom: 1px solid #2a2a44;
+    padding-bottom: 10px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.info-card {
+    background: #12121f;
+    border: 1px solid #252540;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e2e8f0;
+    font-variant-numeric: tabular-nums;
+}
+
+.info-value-model {
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+.info-unit {
+    font-size: 0.68rem;
+    font-weight: normal;
+    color: #64748b;
+    margin-left: 2px;
+}
+
+/* Suspensao */
+.susp-section {
+    margin-bottom: 14px;
+}
+
+.susp-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.susp-card {
+    background: #12121f;
+    border: 1px solid #252540;
+    border-radius: 8px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.susp-pos {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.susp-val {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #e2e8f0;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Botoes DRS / ERS / KERS */
+.flag-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.flag-btn {
+    flex: 1 1 80px;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: default;
+    user-select: none;
+    transition: background-color 0.25s, color 0.25s, box-shadow 0.25s;
+    font-family: inherit;
+}
+
+.flag-btn-on {
+    background-color: #16a34a;
+    color: #dcfce7;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
+}
+
+.flag-btn-off {
+    background-color: #1f2937;
+    color: #6b7280;
+    box-shadow: none;
+}
+
+/* Secao ambiente */
+.env-panel {
+    max-width: 320px;
+}
+
+/* Bussola */
+.compass-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.compass-container {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, #1a1a2e 60%, #0f0f1a 100%);
+    border: 2px solid #2a2a44;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 24px rgba(0,0,0,0.6), inset 0 0 12px rgba(0,0,0,0.4);
+}
+
+.compass-container svg {
+    width: 160px;
+    height: 160px;
+}
+
+@media (max-width: 900px) {
+    .info-panels-row { flex-direction: column; }
+    .env-panel { max-width: 100%; }
+    .susp-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 500px) {
+    .info-grid { grid-template-columns: repeat(2, 1fr); }
+    .flag-buttons { flex-direction: column; }
+}
