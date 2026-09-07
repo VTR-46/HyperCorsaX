@@ -363,7 +363,23 @@ body {
     gap: 20px;
     align-items: center;
     justify-content: flex-start;
+    box-sizing: border-box;
+}
 
+.meter-panel-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 98vw;
+    max-width: 98vw;
+    margin-top: 20px;
+    box-sizing: border-box;
+}
+
+.meter-panel-group .meter-panel-2 {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
 }
 
 
@@ -756,7 +772,8 @@ body {
 }
 
 @media (max-width: 650px) {
-    .dashboard {
+    .dashboard,
+    .meter-panel-group {
         grid-template-columns: 1fr;
     }
 
