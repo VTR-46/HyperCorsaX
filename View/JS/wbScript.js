@@ -415,6 +415,10 @@ ws.onmessage = function (event) {
     if (window.updateRecorderData) {
         window.updateRecorderData(data);
     }
+    // Verifica trigger automático de gravação por voltas
+    if (window.checkLapRecordTrigger) {
+        window.checkLapRecordTrigger(data);
+    }
 
     // 1. Atualiza Gráficos (se existirem na página)
     if (speedChart && pedalsChart) {
@@ -505,5 +509,15 @@ ws.onmessage = function (event) {
     }
 };
 
-ws.onopen = () => console.log("Conectado à telemetria!");
+ws.onopen = () => {
+    console.log("Conectado à telemetria!");
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● CONECTADO'; el.className = 'ws-status ws-ok'; }
+};
+
+ws.onclose = () => {
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● DESCONECTADO'; el.className = 'ws-status ws-off'; }
+};
+
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);

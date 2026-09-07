@@ -397,6 +397,11 @@ loadLapData();
         let data;
         try { data = JSON.parse(event.data); }
         catch (e) { console.error('[Tempos] JSON inválido:', e); return; }
+        
+        // Atualiza o recorder se estiver gravando
+        if (window.updateRecorderData) window.updateRecorderData(data);
+        if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
+        
         try { processData(data); }
         catch (err) { console.error('[Tempos] Erro processData:', err); }
     };

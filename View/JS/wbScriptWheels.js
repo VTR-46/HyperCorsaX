@@ -335,6 +335,7 @@ ws.onmessage = function (event) {
     const data = JSON.parse(event.data);
     // Feed recorder for comparison feature
     if (window.updateRecorderData) window.updateRecorderData(data);
+    if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
     const t = (Date.now() - startTime) / 1000;
 
 
@@ -487,5 +488,15 @@ ws.onmessage = function (event) {
     brakeChart.update('none');
 };
 
-ws.onopen = () => console.log("Conectado à telemetria!");
+ws.onopen = () => {
+    console.log("Conectado à telemetria!");
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● CONECTADO'; el.className = 'ws-status ws-ok'; }
+};
+
+ws.onclose = () => {
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● DESCONECTADO'; el.className = 'ws-status ws-off'; }
+};
+
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);

@@ -387,6 +387,9 @@ ws.onmessage = function (event) {
     if (window.updateRecorderData) {
         window.updateRecorderData(data);
     }
+    if (window.checkLapRecordTrigger) {
+        window.checkLapRecordTrigger(data);
+    }
 
     // 1. Atualiza Arrays dos Gráficos
     const speedData = wearChart.data.datasets[0].data;
@@ -454,5 +457,15 @@ ws.onmessage = function (event) {
     suspensionChart.update('none');
 };
 
-ws.onopen = () => console.log("Conectado à telemetria!");
+ws.onopen = () => {
+    console.log("Conectado à telemetria!");
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● CONECTADO'; el.className = 'ws-status ws-ok'; }
+};
+
+ws.onclose = () => {
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● DESCONECTADO'; el.className = 'ws-status ws-off'; }
+};
+
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);

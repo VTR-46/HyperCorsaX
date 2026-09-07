@@ -70,6 +70,192 @@ body {
     50% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
 }
 
+/* Estado standby do botão (aguardando linha de chegada) */
+.btn-record.standby {
+    background-color: #2C2C2C;
+    color: #F5CF27;
+    border-color: #F5CF27;
+    animation: pulse-standby 1.4s ease-in-out infinite;
+}
+
+.btn-record.standby:hover {
+    background-color: #F5CF27;
+    color: #121212;
+}
+
+@keyframes pulse-standby {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 207, 39, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(245, 207, 39, 0); }
+}
+
+/* Utilitário */
+.hidden { display: none !important; }
+
+/* Badge de status no header */
+.lap-record-status {
+    font-size: 0.75rem;
+    font-weight: bold;
+    font-family: monospace;
+    padding: 4px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.lap-record-status.standby {
+    display: inline-block;
+    color: #F5CF27;
+    background: rgba(245, 207, 39, 0.12);
+    border: 1px solid rgba(245, 207, 39, 0.4);
+    animation: pulse-standby 1.4s ease-in-out infinite;
+}
+
+.lap-record-status.recording {
+    display: inline-block;
+    color: #FF6B6B;
+    background: rgba(255, 107, 107, 0.12);
+    border: 1px solid rgba(255, 107, 107, 0.4);
+    animation: pulse-record 1s infinite;
+}
+
+/* ============================
+   MODAL: GRAVAÇÃO POR VOLTAS
+   ============================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+}
+
+.modal-box {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(253, 224, 71, 0.4);
+    border-radius: 1rem;
+    padding: 32px 36px;
+    min-width: 340px;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 0 30px rgba(253, 224, 71, 0.1);
+    animation: modal-in 0.2s ease-out;
+}
+
+@keyframes modal-in {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f8fafc;
+    margin: 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.modal-desc {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.modal-input {
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid rgba(253, 224, 71, 0.4);
+    border-radius: 0.5rem;
+    color: #fde047;
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: monospace;
+    text-align: center;
+    padding: 12px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.modal-input:focus {
+    border-color: #fde047;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5), 0 0 15px rgba(253, 224, 71, 0.3);
+    background: rgba(2, 6, 23, 0.9);
+}
+
+/* Remove as setas do input number nativamente */
+.modal-input::-webkit-outer-spin-button,
+.modal-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.modal-input[type=number] { -moz-appearance: textfield; }
+
+.modal-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-btn:active { transform: translateY(1px); }
+
+.modal-btn-cancel {
+    background: transparent;
+    border: 1px solid #475569;
+    color: #94a3b8;
+}
+
+.modal-btn-cancel:hover {
+    border-color: #f8fafc;
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-btn-confirm {
+    background: transparent;
+    border: 1px solid #fde047;
+    color: #f8fafc;
+}
+
+.modal-btn-confirm:hover {
+    background: rgba(253, 224, 71, 0.15);
+    border-color: #facc15;
+    box-shadow: 0 0 10px rgba(253, 224, 71, 0.3);
+}
+
+/* Header actions — alinha badge + botão no topo direito */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+
 .header {
     width: 98vw;
     max-width: 98vw;

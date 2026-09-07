@@ -23,7 +23,22 @@
             <h1 class="header-tab-name">INFO</h1>
         </div>
         <div class="header-actions">
-            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
+            <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
+            <span id="lapRecordStatus" class="lap-record-status hidden"></span>
+            <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL: NÚMERO DE VOLTAS ===================== -->
+    <div id="lapRecordModal" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
+        <div class="modal-box">
+            <h2 class="modal-title">Gravar Telemetria</h2>
+            <p class="modal-desc">Quantas voltas deseja gravar?</p>
+            <input id="lapCountInput" type="number" min="1" max="99" value="1" class="modal-input" />
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeLapModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmLapRecord()">Confirmar</button>
+            </div>
         </div>
     </div>
 

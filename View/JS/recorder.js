@@ -9,15 +9,23 @@ let lastRecordTime = 0;
 let recordInterval = null;
 let currentSessionData = null;
 
-// Referência ao botão de gravação
-const recordBtn = document.getElementById('btnRecord');
+// ==========================================
+// MODO GRAVAÇÃO POR VOLTAS
+// ==========================================
+let lapRecordMode  = false;   // true quando o modo por-voltas está ativo
+let targetLaps     = 0;       // número de voltas escolhido pelo usuário
+let lapRecordStartLap = -1;   // valor de completedLaps no momento que a gravação começou
+let lapStandby     = false;   // true = aguardando cruzar a linha de chegada para iniciar
+
+// Referência ao botão principal
+const recordBtn = document.getElementById('btnLapRecord');
 
 // Função chamada pelo WebSocket quando novos dados chegam
 window.updateRecorderData = (data) => {
     currentSessionData = data;
 };
 
-// Inicia/para gravação
+// Inicia/para gravação manual (mantido para compatibilidade com F7)
 window.toggleRecording = () => {
     if (!isRecording) {
         startRecording();
@@ -26,6 +34,52 @@ window.toggleRecording = () => {
     }
 };
 
+// ==========================================
+// FUNÇÕES DO MODAL
+// ==========================================
+
+window.openLapModal = () => {
+    if (lapStandby || isRecording) return; // bloqueia reabrir se já ativo
+    const modal = document.getElementById('lapRecordModal');
+    const input = document.getElementById('lapCountInput');
+    if (modal) modal.classList.remove('hidden');
+    if (input) { input.value = 1; input.focus(); }
+};
+
+window.closeLapModal = () => {
+    const modal = document.getElementById('lapRecordModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.handleModalOverlayClick = (event) => {
+    // Fecha se clicar fora do modal-box
+    if (event.target.id === 'lapRecordModal') {
+        window.closeLapModal();
+    }
+};
+
+window.confirmLapRecord = () => {
+    const input = document.getElementById('lapCountInput');
+    const n = parseInt(input?.value ?? '1', 10);
+
+    if (isNaN(n) || n < 1 || n > 99) {
+        input?.focus();
+        input?.select();
+        return;
+    }
+
+    targetLaps = n;
+    lapRecordMode = true;
+    lapStandby = true;
+    lapRecordStartLap = currentSessionData?.completedLaps ?? -1;
+
+    window.closeLapModal();
+    updateLapRecordUI('standby');
+    console.log(`[LapRecord] Modo standby: aguardando linha de chegada para gravar ${n} volta(s).`);
+};
+
+
+
 function startRecording() {
     isRecording = true;
     recordStartTime = Date.now();
@@ -33,9 +87,15 @@ function startRecording() {
     lastRecordTime = 0;
     
     // Atualiza UI
-    recordBtn.innerHTML = '⏹️ PARAR';
-    recordBtn.classList.add('recording');
-    recordBtn.title = 'Clique para parar a gravação';
+    if (lapRecordMode) {
+        updateLapRecordUI('recording', 0);
+    } else {
+        if (recordBtn) {
+            recordBtn.innerHTML = '⏹️ PARAR';
+            recordBtn.classList.add('recording');
+            recordBtn.title = 'Clique para parar a gravação';
+        }
+    }
     
     // Loop de gravação a cada 100ms (verifica se passou 1s)
     recordInterval = setInterval(() => {
@@ -50,28 +110,121 @@ function startRecording() {
             recordBuffer.push(sample);
             lastRecordTime = Math.floor(elapsed);
             
-            // Feedback visual no botão (contador)
-            recordBtn.innerHTML = `⏹️ ${recordBuffer.length}s`;
+            // Feedback visual
+            if (lapRecordMode) {
+                const voltasFeitas = (currentSessionData?.completedLaps ?? lapRecordStartLap) - lapRecordStartLap;
+                updateLapRecordUI('recording', voltasFeitas);
+            } else if (recordBtn) {
+                recordBtn.innerHTML = `⏹️ ${recordBuffer.length}s`;
+            }
         }
     }, 100);
     
     console.log('[Recorder] Gravação iniciada');
 }
+
 function stopRecording() {
     isRecording = false;
     clearInterval(recordInterval);
     recordInterval = null;
     
+    // Reseta estado do modo por voltas
+    const wasLapMode = lapRecordMode;
+    lapRecordMode  = false;
+    lapStandby     = false;
+    lapRecordStartLap = -1;
+    targetLaps     = 0;
+
     // Atualiza UI
-    recordBtn.innerHTML = '🔴 GRAVAR';
-    recordBtn.classList.remove('recording');
-    recordBtn.title = 'Clique para iniciar gravação';
+    if (wasLapMode) {
+        updateLapRecordUI('idle');
+    } else if (recordBtn) {
+        recordBtn.innerHTML = '🎯 GRAVAR VOLTAS';
+        recordBtn.classList.remove('recording');
+        recordBtn.title = 'Gravar telemetria por número de voltas';
+    }
     
     // Gera e baixa o JSON
     downloadJSON();
     
     console.log('[Recorder] Gravação finalizada:', recordBuffer.length, 'samples');
 }
+
+// ==========================================
+// TRIGGER AUTOMÁTICO POR VOLTA
+// ==========================================
+
+/**
+ * Chamada a cada mensagem do WebSocket.
+ * Detecta cruzamento de linha de chegada via delta de completedLaps.
+ */
+window.checkLapRecordTrigger = (data) => {
+    const currentLaps = data?.completedLaps ?? 0;
+
+    // --- STANDBY: aguardando o carro cruzar a linha de chegada ---
+    if (lapStandby && !isRecording) {
+        if (currentLaps > lapRecordStartLap) {
+            lapRecordStartLap = currentLaps;
+            lapStandby = false;
+            startRecording();
+            console.log(`[LapRecord] Linha cruzada — gravação iniciada. Meta: ${targetLaps} volta(s).`);
+        }
+        return;
+    }
+
+    // --- GRAVANDO: verifica se atingiu o número de voltas ---
+    if (isRecording && lapRecordMode) {
+        const voltasGravadas = currentLaps - lapRecordStartLap;
+        if (voltasGravadas >= targetLaps) {
+            console.log(`[LapRecord] ${voltasGravadas}/${targetLaps} volta(s) completa(s) — encerrando gravação.`);
+            stopRecording();
+        }
+    }
+};
+
+// ==========================================
+// HELPER: ATUALIZAÇÃO DE UI DO MODO POR VOLTAS
+// ==========================================
+
+function updateLapRecordUI(state, voltasFeitas = 0) {
+    const btn    = document.getElementById('btnLapRecord');
+    const badge  = document.getElementById('lapRecordStatus');
+
+    if (!btn) return;
+
+    btn.classList.remove('recording', 'standby');
+    if (badge) badge.classList.add('hidden');
+
+    switch (state) {
+        case 'standby':
+            btn.innerHTML = '⏳ AGUARDANDO';
+            btn.classList.add('standby');
+            btn.title = `Aguardando linha de chegada para iniciar gravação de ${targetLaps} volta(s)`;
+            if (badge) {
+                badge.textContent = `⏳ Aguardando linha de chegada… (${targetLaps} volta${targetLaps > 1 ? 's' : ''})`;
+                badge.className = 'lap-record-status standby';
+            }
+            break;
+
+        case 'recording':
+            btn.innerHTML = `🔴 ${voltasFeitas}/${targetLaps} volta${targetLaps > 1 ? 's' : ''}`;
+            btn.classList.add('recording');
+            btn.title = 'Gravando — aguarde completar as voltas';
+            if (badge) {
+                badge.textContent = `🔴 Gravando: volta ${voltasFeitas + 1} de ${targetLaps}`;
+                badge.className = 'lap-record-status recording';
+            }
+            break;
+
+        case 'idle':
+        default:
+            btn.innerHTML = '🎯 GRAVAR VOLTAS';
+            btn.title = 'Gravar telemetria por número de voltas';
+            if (badge) badge.className = 'lap-record-status hidden';
+            break;
+    }
+}
+
 
 function createSample(data, t) {
     return {
@@ -111,6 +264,15 @@ function createSample(data, t) {
         // Assistências
         abs: data.abs ?? 0,
         tc: data.tc ?? 0,
+        // Força G
+        accG_x: data.accG_x ?? 0,
+        accG_y: data.accG_y ?? 0,
+        accG_z: data.accG_z ?? 0,
+        // Suspensao (Travel)
+        suspensionTravelFL: data.suspensionTravelFL ?? 0,
+        suspensionTravelFR: data.suspensionTravelFR ?? 0,
+        suspensionTravelRL: data.suspensionTravelRL ?? 0,
+        suspensionTravelRR: data.suspensionTravelRR ?? 0,
         // Danos
         carDamageF: data.carDamageF ?? 0,
         carDamageR: data.carDamageR ?? 0,
@@ -202,12 +364,31 @@ window.Recorder = {
 // ==========================================
 document.addEventListener('keydown', (e) => {
     const target = e.target;
+    const modalOpen = !document.getElementById('lapRecordModal')?.classList.contains('hidden');
+
+    // ESC fecha o modal se estiver aberto
+    if (e.key === 'Escape' && modalOpen) {
+        e.preventDefault();
+        window.closeLapModal();
+        return;
+    }
+
+    // Enter confirma o modal se estiver aberto
+    if (e.key === 'Enter' && modalOpen) {
+        e.preventDefault();
+        window.confirmLapRecord();
+        return;
+    }
+
+    // F7 = atalho de gravação manual (não funciona se lapRecordMode estiver ativo)
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
         return;
     }
     if (e.key === 'F7') {
         e.preventDefault();
-        window.toggleRecording();
+        if (!lapRecordMode && !lapStandby) {
+            window.toggleRecording();
+        }
     }
 });
 
