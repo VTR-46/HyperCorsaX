@@ -1,6 +1,4 @@
 let autoScroll = true;
-const janelaTempo = 5; // Quantos segundos mostrar na tela por padrão
-const startTime = Date.now();
 
 // Quando o usuário interagir com o gráfico (arrastar/zoom) desliga o Auto-Scroll
 const pausarAutoScroll = () => {
@@ -88,8 +86,46 @@ const suspensionChart = new Chart(ctxSuspension, {
             { label: 'RR', data: [], borderColor: '#F3FF33', borderWidth: 2 }
         ]
     },
-    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -2, max: 30, ...commonOptions.scales.y } } }
+    options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -2, max: 20, ...commonOptions.scales.y } } }
 });
+
+// Repopula gráficos do buffer na inicialização
+function repopulateChartsFromBuffer() {
+    const history = sharedTelemetryBuffer.getAll();
+    if (history.length === 0) return;
+
+    const speedData = wearChart.data.datasets[0].data;
+    const gasData = pedalsChart.data.datasets[0].data;
+    const brakeData = pedalsChart.data.datasets[1].data;
+    
+    const susFLData = suspensionChart.data.datasets[0].data;
+    const susFRData = suspensionChart.data.datasets[1].data;
+    const susRLData = suspensionChart.data.datasets[2].data;
+    const susRRData = suspensionChart.data.datasets[3].data;
+
+    history.forEach(packet => {
+        const t = packet.t;
+        speedData.push({ x: t, y: packet.speed });
+        gasData.push({ x: t, y: packet.gas });
+        brakeData.push({ x: t, y: packet.brake });
+        
+        susFLData.push({ x: t, y: packet.suspensionTravelFL * 100});
+        susFRData.push({ x: t, y: packet.suspensionTravelFR * 100});
+        susRLData.push({ x: t, y: packet.suspensionTravelRL * 100});
+        susRRData.push({ x: t, y: packet.suspensionTravelRR * 100 });
+    });
+
+    if (typeof syncChartAnnotations !== 'undefined') {
+        wearChart.annotVersion = syncChartAnnotations(wearChart, -1);
+        pedalsChart.annotVersion = syncChartAnnotations(pedalsChart, -1);
+        suspensionChart.annotVersion = syncChartAnnotations(suspensionChart, -1);
+    }
+
+    wearChart.update();
+    pedalsChart.update();
+    suspensionChart.update();
+}
+
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -378,14 +414,54 @@ const updateGForceCircle = (dotId, xValId, yValId, zValId, data) => {
     dot.style.top = `${percentZ}%`;
 };
 
+const updateRideHeightVis = (front, rear) => {
+    const chassis = document.getElementById('car-chassis');
+    const rhFrontLabel = document.getElementById('rh-front-val');
+    const rhRearLabel = document.getElementById('rh-rear-val');
+    
+    if(!chassis || !rhFrontLabel || !rhRearLabel) return;
+    
+    let f = front || 0;
+    let r = rear || 0;
+    
+    rhFrontLabel.innerText = (f * 1000).toFixed(1) + ' mm';
+    rhRearLabel.innerText = (r * 1000).toFixed(1) + ' mm';
+    
+    const multiplier = 1; 
+    
+    const avgHeight = (f + r) / 2;
+    // O eixo Y do CSS cresce para baixo, então multiplicamos por -1 para fazer o carro subir quando a altura aumenta.
+    // E adicionamos um offset base se necessário, mas aqui partimos do centro (-50%).
+    const translateY = -(avgHeight * multiplier);
+    
+    // Rotacao: Carro vira pra direita. Traseira na esquerda, Frente na direita.
+    // Se traseira > frente, inclina pra frente (roda horario -> angulo positivo)
+    const diff = r - f;
+    const rotateDeg = diff * 100; 
+    
+    chassis.style.transform = `translate(-50%, calc(-50% + ${translateY}px)) rotate(${rotateDeg}deg)`;
+};
+
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
-    const t = (Date.now() - startTime) / 1000;
+    if (data.type) {
+        if (window.consumeLapMessage) window.consumeLapMessage(data);
+        return;
+    }
+    const t = (Date.now() - sharedStartTime) / 1000;
+    
+    checkSessionRestart(t);
+    data.t = t;
+    sharedTelemetryBuffer.push(data);
+    updateSectorBadge(data);
 
     // Atualiza o recorder se estiver gravando
     if (window.updateRecorderData) {
         window.updateRecorderData(data);
+    }
+    if (window.checkLapRecordTrigger) {
+        window.checkLapRecordTrigger(data);
     }
 
     // 1. Atualiza Arrays dos Gráficos
@@ -407,8 +483,8 @@ ws.onmessage = function (event) {
     susRLData.push({ x: t, y: data.suspensionTravelRL * 100});
     susRRData.push({ x: t, y: data.suspensionTravelRR * 100 });
 
-    // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
-    const tempoLimite = t - (janelaTempo + 5);
+    // 2. Limpeza de Memória: agora usa MAX_HISTORICO
+    const tempoLimite = t - MAX_HISTORICO;
     while (speedData.length > 0 && speedData[0].x < tempoLimite) {
         speedData.shift();
         gasData.shift();
@@ -421,7 +497,7 @@ ws.onmessage = function (event) {
     }
     // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
-        const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
+        const minX = Math.max(0, t - JANELA_VISIVEL);
 
         wearChart.options.scales.x.min = minX;
         wearChart.options.scales.x.max = t;
@@ -449,10 +525,45 @@ ws.onmessage = function (event) {
 
     updateGForceCircle('gforce-dot', 'gforce-x-val', 'gforce-y-val', 'gforce-z-val', data);
 
+    let rhF = 0, rhR = 0;
+    if (data.rideHeightFront !== undefined && data.rideHeightRear !== undefined) {
+        rhF = data.rideHeightFront;
+        rhR = data.rideHeightRear;
+    } else if (data.rideHeight && data.rideHeight.length >= 2) {
+        rhF = data.rideHeight[0];
+        rhR = data.rideHeight[1];
+    } else if (data.rideHeight_0 !== undefined && data.rideHeight_1 !== undefined) {
+        rhF = data.rideHeight_0;
+        rhR = data.rideHeight_1;
+    } else {
+        rhF = (data.suspensionTravelFL + data.suspensionTravelFR) / 2 || 0;
+        rhR = (data.suspensionTravelRL + data.suspensionTravelRR) / 2 || 0;
+    }
+    updateRideHeightVis(rhF, rhR);
+
+    if (typeof syncChartAnnotations !== 'undefined') {
+        wearChart.annotVersion = syncChartAnnotations(wearChart, wearChart.annotVersion);
+        pedalsChart.annotVersion = syncChartAnnotations(pedalsChart, pedalsChart.annotVersion);
+        suspensionChart.annotVersion = syncChartAnnotations(suspensionChart, suspensionChart.annotVersion);
+    }
+
     wearChart.update('none');
     pedalsChart.update('none');
     suspensionChart.update('none');
 };
 
-ws.onopen = () => console.log("Conectado à telemetria!");
+ws.onopen = () => {
+    console.log("Conectado à telemetria!");
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● CONECTADO'; el.className = 'ws-status ws-ok'; }
+};
+
+ws.onclose = () => {
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● DESCONECTADO'; el.className = 'ws-status ws-off'; }
+};
+
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+repopulateChartsFromBuffer();
+

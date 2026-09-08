@@ -17,15 +17,41 @@
         <div class="header-brand">
             <img src="../img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
             <h1 class="header-tab-name">TEMPOS</h1>
+            <div class="header-category">
+                <img src="../img/Formula.png" alt="Formula" class="header-category-img">
+                <span class="header-category-text">FORMULA</span>
+            </div>
         </div>
         <div class="header-actions">
+            <span id="lapRecordStatus" class="lap-record-status hidden"></span>
             <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
             <button class="btn-clear" onclick="clearSession()">🗑 LIMPAR SESSÃO</button>
+            <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>  
+            
+        </div>
+    </div>
+
+    <!-- ===================== MODAL: NÚMERO DE VOLTAS ===================== -->
+    <div id="lapRecordModal" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
+        <div class="modal-box">
+            <h2 class="modal-title">Gravar Telemetria</h2>
+            <p class="modal-desc">Quantas voltas deseja gravar?</p>
+            <input id="lapCountInput" type="number" min="1" max="99" value="1" class="modal-input" />
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeLapModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmLapRecord()">Confirmar</button>
+            </div>
         </div>
     </div>
 
     <!-- ══════════════════ BARRA DE NAVEGAÇÃO ══════════════════ -->
     <section id="headerSectionT" class="headerSectionT mt-5 w-full rounded-2xl bg-slate-900/80 p-4">
+
+        <a href="../graphics.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/info.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">INFO</span>
+        </a>
 
         <a href="./engine.html"
             class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
@@ -172,16 +198,19 @@
         </div>
 
         <!-- Estado vazio -->
-        <div id="t-empty-state" class="tempos-empty">
+        <!-- <div id="t-empty-state" class="tempos-empty">
             <svg class="tempos-empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 6v6l4 2M12 2a10 10 0 100 20A10 10 0 0012 2z" />
             </svg>
             <p>Nenhuma volta registrada ainda.</p>
             <p class="tempos-empty-sub">Complete uma volta no Assetto Corsa para começar.</p>
-        </div>
+        </div> -->
     </section>
+    
 
+    <script src="../JS/recorder.js"></script>
+    <script src="../JS/wbScriptShared.js"></script>
     <script src="../JS/wbScriptTempos.js"></script>
 
     <!-- Esconde/exibe o estado vazio conforme a tabela tem conteúdo -->

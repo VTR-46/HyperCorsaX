@@ -7,8 +7,10 @@ const pausarAutoScroll = () => {
     if (autoScroll) {
         autoScroll = false;
         const btn = document.getElementById('btnAutoScroll');
-        btn.innerText = "Auto-Scroll: DESLIGADO (Ver Histórico)";
-        btn.classList.add('off');
+        if (btn) {
+            btn.innerText = "Auto-Scroll: DESLIGADO (Ver Histórico)";
+            btn.classList.add('off');
+        }
     }
 };
 
@@ -16,8 +18,10 @@ const pausarAutoScroll = () => {
 window.toggleAutoScroll = () => {
     autoScroll = true;
     const btn = document.getElementById('btnAutoScroll');
-    btn.innerText = "Auto-Scroll: LIGADO";
-    btn.classList.remove('off');
+    if (btn) {
+        btn.innerText = "Auto-Scroll: LIGADO";
+        btn.classList.remove('off');
+    }
 };
 
 // performance e zoom
@@ -53,19 +57,18 @@ const commonOptions = {
     }
 };
 
-// Gráfico de Velocidade
-const ctxSpeed = document.getElementById('speedChart').getContext('2d');
-const speedChart = new Chart(ctxSpeed, {
+// Gráficos (inicializados com segurança apenas se o canvas existir)
+const speedCanvas = document.getElementById('speedChart');
+const speedChart = (speedCanvas && typeof Chart !== 'undefined') ? new Chart(speedCanvas.getContext('2d'), {
     type: 'line',
     data: {
         datasets: [{ label: 'Velocidade (km/h)', data: [], borderColor: '#FF6B6B', borderWidth: 2 }]
     },
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 0, suggestedMax: 300, ...commonOptions.scales.y } } }
-});
+}) : null;
 
-// Grafico de Pedais
-const ctxPedals = document.getElementById('pedalsChart').getContext('2d');
-const pedalsChart = new Chart(ctxPedals, {
+const pedalsCanvas = document.getElementById('pedalsChart');
+const pedalsChart = (pedalsCanvas && typeof Chart !== 'undefined') ? new Chart(pedalsCanvas.getContext('2d'), {
     type: 'line',
     data: {
         datasets: [
@@ -74,7 +77,7 @@ const pedalsChart = new Chart(ctxPedals, {
         ]
     },
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
-});
+}) : null;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -114,30 +117,38 @@ const getMeterColor = (percent, lowColor, idealColor, highColor) => {
 };
 
 const updateMeter = (fillId, valueId, value, min, max, suffix, lowColor, highColor) => {
-    const normalized = ((value - min) / (max - min)) * 100;
-    const percent = clamp(normalized, 0, 100);
     const fill = document.getElementById(fillId);
     const label = document.getElementById(valueId);
-    if (!fill || !label) return;
-    fill.style.height = percent + '%';
-    fill.style.background = getMeterColor(percent, lowColor, '#33FF00', highColor);
-    label.innerText = `${value.toFixed(1)}${suffix}`;
+    if (!fill && !label) return;
+    const normalized = ((value - min) / (max - min)) * 100;
+    const percent = clamp(normalized, 0, 100);
+    if (fill) {
+        fill.style.height = percent + '%';
+        fill.style.background = getMeterColor(percent, lowColor, '#33FF00', highColor);
+    }
+    if (label) {
+        label.innerText = `${value.toFixed(1)}${suffix}`;
+    }
 };
 
 const updateMeterTyreWear = (fillId, valueId, value, min, max, suffix) => {
-    const normalized = ((value - min) / (max - min)) * 100;
-    const percent = clamp(normalized, 0, 100);
     const fill = document.getElementById(fillId);
     const label = document.getElementById(valueId);
-    if (!fill || !label) return;
-
-    fill.style.height = percent + '%';
-    fill.style.background = getMeterColor(percent, "#F52727", '#F5CF27', '#33FF00'); // cores low, middle, high
-    label.innerText = `${value.toFixed(1)}${suffix}`;
+    if (!fill && !label) return;
+    const normalized = ((value - min) / (max - min)) * 100;
+    const percent = clamp(normalized, 0, 100);
+    if (fill) {
+        fill.style.height = percent + '%';
+        fill.style.background = getMeterColor(percent, "#F52727", '#F5CF27', '#33FF00');
+    }
+    if (label) {
+        label.innerText = `${value.toFixed(1)}${suffix}`;
+    }
 };
 
 const updateOnlyValue = (valueId, value, suffix) => {
     const label = document.getElementById(valueId);
+    if (!label) return;
     label.innerText = `${value.toFixed(1)}${suffix}`;
 };
 
@@ -320,17 +331,86 @@ function updateLapPanel(data) {
 }
 
 // ==========================================
+// PAINEL SEÇÃO 1: CAR INFO
+// ==========================================
+const setFlagBtn = (id, isTrue) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const label = id.replace('btn-has', '');
+    if (isTrue) {
+        el.textContent = label + '  TRUE';
+        el.classList.remove('flag-btn-off');
+        el.classList.add('flag-btn-on');
+    } else {
+        el.textContent = label + ' FALSE';
+        el.classList.remove('flag-btn-on');
+        el.classList.add('flag-btn-off');
+    }
+};
+
+function updateCarInfo(data) {
+    if (data.carModel !== undefined) {
+        setTextSafe('inf-carModel', data.carModel || '--');
+    }
+    if (data.maxTorque !== undefined) setTextSafe('inf-maxTorque', data.maxTorque.toFixed(1) + ' Nm');
+    if (data.maxPower !== undefined) setTextSafe('inf-maxPower', data.maxPower.toFixed(1) + ' W');
+    if (data.maxRpm !== undefined) setTextSafe('inf-maxRpm', data.maxRpm + ' rpm');
+    if (data.maxFuel !== undefined) setTextSafe('inf-maxFuel', data.maxFuel.toFixed(1) + ' L');
+    if (data.maxTurboBoost !== undefined) setTextSafe('inf-maxTurboBoost', data.maxTurboBoost.toFixed(2) + ' bar');
+
+    if (data.suspMaxFL !== undefined) setTextSafe('inf-suspFL', (data.suspMaxFL * 1000).toFixed(1) + ' mm');
+    if (data.suspMaxFR !== undefined) setTextSafe('inf-suspFR', (data.suspMaxFR * 1000).toFixed(1) + ' mm');
+    if (data.suspMaxRL !== undefined) setTextSafe('inf-suspRL', (data.suspMaxRL * 1000).toFixed(1) + ' mm');
+    if (data.suspMaxRR !== undefined) setTextSafe('inf-suspRR', (data.suspMaxRR * 1000).toFixed(1) + ' mm');
+
+    if (data.hasDRS !== undefined) setFlagBtn('btn-hasDRS', data.hasDRS === 1);
+    if (data.hasERS !== undefined) setFlagBtn('btn-hasERS', data.hasERS === 1);
+    if (data.hasKERS !== undefined) setFlagBtn('btn-hasKERS', data.hasKERS === 1);
+}
+
+// ==========================================
+// PAINEL SEÇÃO 2: AMBIENTE & BÚSSOLA
+// ==========================================
+let currentCompassAngle = 0;
+
+function updateCompass(deg) {
+    deg = ((deg % 360) + 360) % 360;
+
+    let delta = deg - currentCompassAngle;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    currentCompassAngle += delta * 0.25;
+
+    const needleN = document.getElementById('compass-needle-n');
+    const needleS = document.getElementById('compass-needle-s');
+    const degText = document.getElementById('compass-deg');
+    if (needleN) needleN.setAttribute('transform', `rotate(${currentCompassAngle},80,80)`);
+    if (needleS) needleS.setAttribute('transform', `rotate(${currentCompassAngle},80,80)`);
+    if (degText) degText.textContent = `${Math.round(deg)}°`;
+}
+
+function updateEnvironment(data) {
+    if (data.surfaceGrip !== undefined) setTextSafe('inf-surfaceGrip', (data.surfaceGrip * 100).toFixed(1) + ' %');
+    if (data.windSpeed !== undefined) setTextSafe('inf-windSpeed', data.windSpeed.toFixed(1) + ' km/h');
+    if (data.windDirection !== undefined) updateCompass(data.windDirection);
+}
+
+// ==========================================
 // WEBSOCKET
 // ==========================================
 const ws = new WebSocket('ws://localhost:8765');
+window.ws = ws;
 
 ws.onmessage = function (event) {
-    // console.log("WS MSG", event.data); // Desativado para melhor performance
     let data;
     try {
         data = JSON.parse(event.data);
     } catch (e) {
         console.error('JSON inválido do WebSocket:', e);
+        return;
+    }
+    if (data.type) {
+        if (window.consumeLapMessage) window.consumeLapMessage(data);
         return;
     }
     const t = (Date.now() - startTime) / 1000;
@@ -339,25 +419,41 @@ ws.onmessage = function (event) {
     if (window.updateRecorderData) {
         window.updateRecorderData(data);
     }
+    // Verifica trigger automático de gravação por voltas
+    if (window.checkLapRecordTrigger) {
+        window.checkLapRecordTrigger(data);
+    }
+    // 1. Atualiza Gráficos (se existirem na página)
+    if (speedChart && pedalsChart) {
+        const speedData = speedChart.data.datasets[0].data;
+        const gasData = pedalsChart.data.datasets[0].data;
+        const brakeData = pedalsChart.data.datasets[1].data;
 
-    // 1. Atualiza Arrays dos Gráficos
-    const speedData = speedChart.data.datasets[0].data;
-    const gasData = pedalsChart.data.datasets[0].data;
-    const brakeData = pedalsChart.data.datasets[1].data;
+        speedData.push({ x: t, y: data.speed });
+        gasData.push({ x: t, y: data.gas });
+        brakeData.push({ x: t, y: data.brake });
 
-    speedData.push({ x: t, y: data.speed });
-    gasData.push({ x: t, y: data.gas });
-    brakeData.push({ x: t, y: data.brake });
+        const tempoLimite = t - (janelaTempo + 5); 
+        while (speedData.length > 0 && speedData[0].x < tempoLimite) {
+            speedData.shift();
+            gasData.shift();
+            brakeData.shift();
+        }
 
-    // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
-    const tempoLimite = t - (janelaTempo + 5); 
-    while (speedData.length > 0 && speedData[0].x < tempoLimite) {
-        speedData.shift();
-        gasData.shift();
-        brakeData.shift();
+        if (autoScroll) {
+            const minX = Math.max(0, t - janelaTempo);
+            speedChart.options.scales.x.min = minX;
+            speedChart.options.scales.x.max = t;
+
+            pedalsChart.options.scales.x.min = minX;
+            pedalsChart.options.scales.x.max = t;
+        }
+
+        speedChart.update('none');
+        pedalsChart.update('none');
     }
 
-    // 3. Leituras de Pneu e Normalização
+    // 2. Leituras de Pneu e Normalização (se medidores existirem)
     const grip_w1 = data.tyreWFL ?? 0;
     const grip_w2 = data.tyreWFR ?? 0;
     const grip_w3 = data.tyreWRL ?? 0;
@@ -368,7 +464,7 @@ ws.onmessage = function (event) {
     const hud_w3 = getNormalizedWear(grip_w3, 'RL');
     const hud_w4 = getNormalizedWear(grip_w4, 'RR');
 
-    // 4. Atualização de Interface
+    // 3. Atualização de Interface Geral
     updateMeter('brakeFLFill', 'brakeFLValue', data.brakeFL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeFRFill', 'brakeFRValue', data.brakeFR ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
     updateMeter('brakeRLFIll', 'brakeRLValue', data.brakeRL ?? 0, 0, 1200, '°C', '#0004FF', '#FF0000');
@@ -387,34 +483,46 @@ ws.onmessage = function (event) {
     updateOnlyValue('tyrePsiValueRL', data.tyrePressureRL ?? 0, ' psi');
     updateOnlyValue('tyrePsiValueRR', data.tyrePressureRR ?? 0, ' psi');
 
-     updateOnlyValue('tyrePsiValueFL', data.tyreFL ?? 0, ' °C');
-     updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
-     updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
-     updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueFL', data.tyreFL ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueFR', data.tyreFR ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueRL', data.tyreRL ?? 0, ' °C');
+    updateOnlyValue('tyreTempValueRR', data.tyreRR ?? 0, ' °C');
 
     updateDamageMap(data);
 
-    // 6. Painel de Tempos de Volta (isolate: numca pode travar o resto da telemetria)
+    // 4. Painel de Tempos de Volta
     try {
         updateLapPanel(data);
     } catch (err) {
         console.error('updateLapPanel falhou:', err);
     }
 
-    // 7. Scroll e Update dos Gráficos
-    if (autoScroll) {
-        const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
-
-        speedChart.options.scales.x.min = minX;
-        speedChart.options.scales.x.max = t;
-
-        pedalsChart.options.scales.x.min = minX;
-        pedalsChart.options.scales.x.max = t;
+    // 5. Seção 1: Car Info
+    try {
+        updateCarInfo(data);
+    } catch (err) {
+        console.error('updateCarInfo falhou:', err);
     }
 
-    speedChart.update('none');
-    pedalsChart.update('none');
+    // 6. Seção 2: Ambiente & Bússola
+    try {
+        updateEnvironment(data);
+    } catch (err) {
+        console.error('updateEnvironment falhou:', err);
+    }
 };
 
-ws.onopen = () => console.log("Conectado à telemetria!");
+ws.onopen = () => {
+    console.log("Conectado à telemetria!");
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● CONECTADO'; el.className = 'ws-status ws-ok'; }
+};
+
+ws.onclose = () => {
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● DESCONECTADO'; el.className = 'ws-status ws-off'; }
+};
+
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+

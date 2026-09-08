@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
 
     <link rel="stylesheet" href="../Style/wb.css">
     <link rel="stylesheet" href="../src/output.css">
@@ -21,14 +22,43 @@
         <div class="header-brand">
             <img src="../img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
             <h1 class="header-tab-name">POWERTRAIN</h1>
+            <div class="header-category">
+                <img src="../img/Formula.png" alt="Formula" class="header-category-img">
+                <span class="header-category-text">FORMULA</span>
+            </div>
         </div>
         <div class="header-actions">
-            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
+            <div id="lap-sector-badge" class="lap-sector-badge">
+                <span id="badge-lap">Volta --</span>
+                <span id="badge-sector" class="badge-sector">S--</span>
+            </div>
+            <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
+            <span id="lapRecordStatus" class="lap-record-status hidden"></span>
+            <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>
             <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
         </div>
     </div>
 
+    <!-- ===================== MODAL: NÚMERO DE VOLTAS ===================== -->
+    <div id="lapRecordModal" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
+        <div class="modal-box">
+            <h2 class="modal-title">Gravar Telemetria</h2>
+            <p class="modal-desc">Quantas voltas deseja gravar?</p>
+            <input id="lapCountInput" type="number" min="1" max="99" value="1" class="modal-input" />
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeLapModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmLapRecord()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <section id="headerSectionT" class="headerSectionT mt-5 w-full rounded-2xl  bg-slate-900/80 p-4">
+
+        <a href="../graphics.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/info.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">INFO</span>
+        </a>
 
         <a href="./engine.html"
             class="group inline-flex items-center gap-3 border border-amber-300 bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300">
@@ -99,6 +129,7 @@
     </div>
 
     <script src="../JS/recorder.js"></script>
+    <script src="../JS/wbScriptShared.js"></script>
     <script src="../JS/wbScriptEngine.js"></script>
 </body>
 

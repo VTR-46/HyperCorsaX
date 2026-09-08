@@ -4,173 +4,347 @@ import asyncio
 import time
 import websockets
 
-#ASSETTO
-
 HOST_AC = 'localhost'
 PORT_AC = 5000
 
-def conectar_socket():
+connected_clients = set()
+latest_telemetry_json = None
+
+
+def lap_str_to_ms(value):
+    if not value or value == '--:--.---':
+        return -1
+    try:
+        minutes, seconds = str(value).split(':', 1)
+        return int(minutes) * 60000 + round(float(seconds) * 1000)
+    except (ValueError, TypeError):
+        return -1
+
+
+class LapTracker:
+    """Calcula voltas uma vez para todos os clientes WebSocket."""
+
+    def __init__(self):
+        self.history = []
+        self.session_id = 1
+        self.prev_sector = -1
+        self.prev_completed_laps = -1
+        self.prev_i_last_time = -1
+        self.captured_s1_ms = -1
+        self.captured_s2_ms = -1
+        self.split_at_s1_ms = -1
+
+    def reset(self):
+        self.history.clear()
+        self.session_id += 1
+        self.prev_sector = -1
+        self.prev_completed_laps = -1
+        self.prev_i_last_time = -1
+        self.captured_s1_ms = -1
+        self.captured_s2_ms = -1
+        self.split_at_s1_ms = -1
+
+    def state_message(self):
+        return {
+            "type": "lap_state",
+            "sessionId": self.session_id,
+            "history": self.history,
+        }
+
+    def ingest(self, data):
+        sector = data.get("currentSector", 0)
+        completed_laps = data.get("completedLaps", 0)
+        i_last_time = data.get("iLastTime", -1)
+        last_sector_ms = data.get("lastSectorTime", -1)
+        split_ms = lap_str_to_ms(data.get("split"))
+
+        if self.prev_sector == -1:
+            self.prev_sector = sector
+            self.prev_completed_laps = completed_laps
+            self.prev_i_last_time = i_last_time
+            return None
+
+        if completed_laps == 0 and self.prev_completed_laps > 0:
+            self.reset()
+            self.prev_sector = sector
+            self.prev_completed_laps = completed_laps
+            self.prev_i_last_time = i_last_time
+            return None
+
+        if sector != self.prev_sector:
+            if self.prev_sector == 0 and sector == 1:
+                self.captured_s1_ms = last_sector_ms if last_sector_ms > 0 else split_ms
+                self.split_at_s1_ms = split_ms
+            elif self.prev_sector == 1 and sector == 2:
+                if last_sector_ms > 0:
+                    self.captured_s2_ms = last_sector_ms
+                elif split_ms > 0 and self.split_at_s1_ms > 0:
+                    self.captured_s2_ms = split_ms - self.split_at_s1_ms
+            self.prev_sector = sector
+
+        lap_completed = (
+            (i_last_time > 0 and i_last_time != self.prev_i_last_time)
+            or (completed_laps > self.prev_completed_laps and self.prev_completed_laps >= 0)
+        )
+
+        event = None
+        if lap_completed:
+            total_ms = i_last_time if i_last_time > 0 else lap_str_to_ms(data.get("lastTime"))
+            if total_ms > 0 and self.captured_s1_ms > 0 and self.captured_s2_ms > 0:
+                s3_ms = total_ms - self.captured_s1_ms - self.captured_s2_ms
+                if s3_ms < 0:
+                    s3_ms = -1
+            else:
+                s3_ms = last_sector_ms if last_sector_ms > 0 else -1
+
+            lap_number = completed_laps if completed_laps > 0 else len(self.history) + 1
+            entry = {
+                "lap": lap_number,
+                "s1Ms": self.captured_s1_ms,
+                "s2Ms": self.captured_s2_ms,
+                "s3Ms": s3_ms,
+                "totalMs": total_ms,
+            }
+            self.history.append(entry)
+            event = {
+                "type": "lap_completed",
+                "sessionId": self.session_id,
+                "lapId": f"{self.session_id}:{lap_number}:{total_ms}",
+                "lap": entry,
+            }
+            self.captured_s1_ms = -1
+            self.captured_s2_ms = -1
+            self.split_at_s1_ms = -1
+
+        self.prev_i_last_time = i_last_time
+        self.prev_completed_laps = completed_laps
+        return event
+
+
+lap_tracker = LapTracker()
+
+def to_float(val, default=0.0):
+    try:
+        s = str(val).strip()
+        return float(s) if s else default
+    except (ValueError, TypeError):
+        return default
+
+def to_int(val, default=0):
+    try:
+        s = str(val).strip()
+        return int(float(s)) if s else default
+    except (ValueError, TypeError):
+        return default
+
+def parse_telemetry_line(linha):
+    valores = linha.split(',')
+    if len(valores) < 52:
+        return None
+
+    return {
+        "speed": to_float(valores[0]),
+        "rpm": to_float(valores[1]),
+        "gear": to_int(valores[2]),
+        "gas": to_float(valores[3]),
+        "brake": to_float(valores[4]),
+        "clutch": to_float(valores[35]) if len(valores) > 35 else 0.0,
+        
+        "fuel": to_float(valores[5]),
+        "steer": to_float(valores[6]),
+
+        # Força G
+        "accG_x": to_float(valores[8]) if len(valores) > 8 else 0.0,
+        "accG_y": to_float(valores[9]) if len(valores) > 9 else 0.0,
+        "accG_z": to_float(valores[10]) if len(valores) > 10 else 0.0,
+        
+        # Temperaturas dos Pneus (Índices 11 ao 14)
+        "tyreFL": to_float(valores[11]) if len(valores) > 11 else 0.0,
+        "tyreFR": to_float(valores[12]) if len(valores) > 12 else 0.0,
+        "tyreRL": to_float(valores[13]) if len(valores) > 13 else 0.0,
+        "tyreRR": to_float(valores[14]) if len(valores) > 14 else 0.0,
+        
+        # Temperaturas dos Freios (Índices 15 ao 18)
+        "brakeFL": to_float(valores[15]) if len(valores) > 15 else 0.0,
+        "brakeFR": to_float(valores[16]) if len(valores) > 16 else 0.0,
+        "brakeRL": to_float(valores[17]) if len(valores) > 17 else 0.0,
+        "brakeRR": to_float(valores[18]) if len(valores) > 18 else 0.0,
+        
+        # ERS (Energia)
+        "ersPower": to_float(valores[19]) if len(valores) > 19 else 0.0,
+        
+        # Desgate dos Pneus
+        "tyreWFL": to_float(valores[20]) if len(valores) > 20 else 0.0,
+        "tyreWFR": to_float(valores[21]) if len(valores) > 21 else 0.0,
+        "tyreWRL": to_float(valores[22]) if len(valores) > 22 else 0.0,
+        "tyreWRR": to_float(valores[23]) if len(valores) > 23 else 0.0,
+
+        # Dano do carro
+        "carDamageF": to_float(valores[24]) if len(valores) > 24 else 0.0,
+        "carDamageD": to_float(valores[25]) if len(valores) > 25 else 0.0,
+        "carDamageT": to_float(valores[26]) if len(valores) > 26 else 0.0,
+        "carDamageE": to_float(valores[27]) if len(valores) > 27 else 0.0,
+        "carDamageG": to_float(valores[28]) if len(valores) > 28 else 0.0,
+        
+        # Pressao dos Pneus
+        "tyrePressureFL": to_float(valores[29]) if len(valores) > 29 else 0.0,
+        "tyrePressureFR": to_float(valores[30]) if len(valores) > 30 else 0.0,
+        "tyrePressureRL": to_float(valores[31]) if len(valores) > 31 else 0.0,
+        "tyrePressureRR": to_float(valores[32]) if len(valores) > 32 else 0.0,
+        
+        # Assistencia
+        "abs": to_float(valores[33]) if len(valores) > 33 else 0.0,
+        "tc": to_float(valores[34]) if len(valores) > 34 else 0.0,
+        
+        # DRS
+        "drs": to_float(valores[7]) if len(valores) > 7 else 0.0,
+        
+        # Suspensao
+        "suspensionTravelFL": to_float(valores[48]) if len(valores) > 48 else 0.0,
+        "suspensionTravelFR": to_float(valores[49]) if len(valores) > 49 else 0.0,
+        "suspensionTravelRL": to_float(valores[50]) if len(valores) > 50 else 0.0,
+        "suspensionTravelRR": to_float(valores[51]) if len(valores) > 51 else 0.0,
+
+        # Tempos de volta
+        "currentTime":     valores[36].strip() if len(valores) > 36 and valores[36].strip() else "--:--.---",
+        "lastTime":        valores[37].strip() if len(valores) > 37 and valores[37].strip() else "--:--.---",
+        "bestTime":        valores[38].strip() if len(valores) > 38 and valores[38].strip() else "--:--.---",
+        "split":           valores[39].strip() if len(valores) > 39 and valores[39].strip() else "--:--.---",
+        "completedLaps":   to_int(valores[40]) if len(valores) > 40 else 0,
+        "position":        to_int(valores[41]) if len(valores) > 41 else 0,
+        "currentSector":   to_int(valores[42]) if len(valores) > 42 else 0,
+        "numberOfLaps":    to_int(valores[43]) if len(valores) > 43 else 0,
+        "status":          to_int(valores[44]) if len(valores) > 44 else 0,
+        "session":         to_int(valores[45]) if len(valores) > 45 else 0,
+        "iLastTime":       to_int(valores[46], -1) if len(valores) > 46 else -1,
+        "lastSectorTime":  to_int(valores[47], -1) if len(valores) > 47 else -1,
+        
+        # tyreTempI, M, O (indices 52..63)
+        "tyreTempIFL": to_float(valores[52]) if len(valores) > 52 else 0.0,
+        "tyreTempIFR": to_float(valores[53]) if len(valores) > 53 else 0.0,
+        "tyreTempIRL": to_float(valores[54]) if len(valores) > 54 else 0.0,
+        "tyreTempIRR": to_float(valores[55]) if len(valores) > 55 else 0.0,
+        
+        "tyreTempMFL": to_float(valores[56]) if len(valores) > 56 else 0.0,
+        "tyreTempMFR": to_float(valores[57]) if len(valores) > 57 else 0.0,
+        "tyreTempMRL": to_float(valores[58]) if len(valores) > 58 else 0.0,
+        "tyreTempMRR": to_float(valores[59]) if len(valores) > 59 else 0.0,
+        
+        "tyreTempOFL": to_float(valores[60]) if len(valores) > 60 else 0.0,
+        "tyreTempOFR": to_float(valores[61]) if len(valores) > 61 else 0.0,
+        "tyreTempORL": to_float(valores[62]) if len(valores) > 62 else 0.0,
+        "tyreTempORR": to_float(valores[63]) if len(valores) > 63 else 0.0,
+
+        # Dados estáticos do carro (indices 64..76)
+        "carModel":         valores[64].strip() if len(valores) > 64 else "",
+        "maxTorque":        to_float(valores[65]) if len(valores) > 65 else 0.0,
+        "maxPower":         to_float(valores[66]) if len(valores) > 66 else 0.0,
+        "maxRpm":           to_int(valores[67]) if len(valores) > 67 else 0,
+        "maxFuel":          to_float(valores[68]) if len(valores) > 68 else 0.0,
+        "suspMaxFL":        to_float(valores[69]) if len(valores) > 69 else 0.0,
+        "suspMaxFR":        to_float(valores[70]) if len(valores) > 70 else 0.0,
+        "suspMaxRL":        to_float(valores[71]) if len(valores) > 71 else 0.0,
+        "suspMaxRR":        to_float(valores[72]) if len(valores) > 72 else 0.0,
+        "maxTurboBoost":    to_float(valores[73]) if len(valores) > 73 else 0.0,
+        "hasDRS":           to_int(valores[74]) if len(valores) > 74 else 0,
+        "hasERS":           to_int(valores[75]) if len(valores) > 75 else 0,
+        "hasKERS":          to_int(valores[76]) if len(valores) > 76 else 0,
+
+        # Ambiente (indices 77..79)
+        "surfaceGrip":      to_float(valores[77]) if len(valores) > 77 else 0.0,
+        "windSpeed":        to_float(valores[78]) if len(valores) > 78 else 0.0,
+        "windDirection":    to_float(valores[79]) if len(valores) > 79 else 0.0,
+        
+        # Ride Height (indices 80..81)
+        "rideHeightFront":  to_float(valores[80]) if len(valores) > 80 else 0.0,
+        "rideHeightRear":   to_float(valores[81]) if len(valores) > 81 else 0.0,
+    }
+
+async def socket_receiver_loop():
+    global latest_telemetry_json
     while True:
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((HOST_AC, PORT_AC))
-            sock.setblocking(False)
-            print("Conectado ao CorsaX! Aguardando frontend...")
-            return sock
-        except ConnectionRefusedError:
-            print("Aguardando o CorsaX.exe na porta 5000...")
-            time.sleep(1)
-        except OSError as erro:
-            print(f"Falha ao conectar no CorsaX: {erro}")
-            time.sleep(1)
+        sock = None
+        # Conexão / reconexão com readT.exe
+        while sock is None:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect((HOST_AC, PORT_AC))
+                sock.setblocking(False)
+                print("[Socket] Conectado ao CorsaX (porta 5000)!")
+            except (ConnectionRefusedError, OSError):
+                sock = None
+                await asyncio.sleep(1)
 
+        buffer_recebido = ""
+        while True:
+            try:
+                data = sock.recv(2048).decode(errors='ignore')
+                if not data:
+                    print("[Socket] Conexão com CorsaX perdida. Reconectando...")
+                    sock.close()
+                    break
 
-# Conecta ao servidor C do Assetto Corsa
-sock = conectar_socket()
-
-async def enviar_telemetria(websocket):
-    buffer_recebido = ""
-    while True:
-        try:
-            # Lê os dados do socket
-            data = sock.recv(2048).decode(errors='ignore')
-            if data:
                 buffer_recebido += data
-                
-                # Processa linha por linha
                 while '\n' in buffer_recebido:
                     linha, buffer_recebido = buffer_recebido.split('\n', 1)
                     linha = linha.strip()
-                    
+
                     if not linha or not (linha[0].isdigit() or linha[0] == '-'):
                         continue
 
-                    # Mantem a posicao original dos campos; remover vazios desloca os indices de lap timing.
-                    valores = linha.split(',')
+                    payload = parse_telemetry_line(linha)
+                    if payload:
+                        msg = json.dumps(payload)
+                        latest_telemetry_json = msg
+                        if connected_clients:
+                            await asyncio.gather(*[client.send(msg) for client in list(connected_clients)], return_exceptions=True)
 
-                    if len(valores) >= 52:
-                        try:
-                            # Empacota os dados essenciais em um JSON
-                            payload = {
-                                "speed": float(valores[0]),
-                                "rpm": float(valores[1]),
-                                "gear": int(valores[2]),
-                                "gas": float(valores[3]),
-                                "brake": float(valores[4]),
-                                "clutch": float(valores[35]),
-                                
-                                "fuel": float(valores[5]),
-                                
-                                "steer": float(valores[6]),
+                        previous_session_id = lap_tracker.session_id
+                        lap_event = lap_tracker.ingest(payload)
+                        if lap_tracker.session_id != previous_session_id:
+                            lap_message = lap_tracker.state_message()
+                        else:
+                            lap_message = lap_event
+                        if lap_message and connected_clients:
+                            lap_msg = json.dumps(lap_message)
+                            await asyncio.gather(*[client.send(lap_msg) for client in list(connected_clients)], return_exceptions=True)
 
-                                # Força G
-                                "accG_x": float(valores[8]),
-                                "accG_y": float(valores[9]),
-                                "accG_z": float(valores[10]),
-                                
-                                # Temperaturas dos Pneus (Índices 11 ao 14)
-                                "tyreFL": float(valores[11]),
-                                "tyreFR": float(valores[12]),
-                                "tyreRL": float(valores[13]),
-                                "tyreRR": float(valores[14]),
-                                
-                                # Temperaturas dos Freios (Índices 15 ao 18)
-                                "brakeFL": float(valores[15]), 
-                                "brakeFR": float(valores[16]),
-                                "brakeRL": float(valores[17]),
-                                "brakeRR": float(valores[18]),
-                                
-                                # ERS (Energia)
-                                
-                                "ersPower": float(valores[19]),
-                                
-                                # Desgate dos Pneus
-                                "tyreWFL": float(valores[20]),
-                                "tyreWFR": float(valores[21]),
-                                "tyreWRL": float(valores[22]),
-                                "tyreWRR": float(valores[23]),
+            except BlockingIOError:
+                pass
+            except Exception as e:
+                print(f"[Socket] Erro no receiver: {e}")
+                sock.close()
+                break
 
-                                # Dano do carro
-                                "carDamageF": float(valores[24]),
-                                "carDamageD": float(valores[25]),
-                                "carDamageT": float(valores[26]),
-                                "carDamageE": float(valores[27]),
-                                "carDamageG": float(valores[28]),
-                                
-                                #Pressao dos Pneus
-                                "tyrePressureFL" :float(valores[29]),
-                                "tyrePressureFR" :float(valores[30]),
-                                "tyrePressureRL" :float(valores[31]),
-                                "tyrePressureRR" :float(valores[32]),
-                                
-                                #Assistencia
-                                "abs": float(valores[33]),
-                                "tc": float(valores[34]),
-                                
-                                #DRS
-                                "drs": float(valores[7]),
-                                
-                                #Suspensao (indices 48..51 apos inclusao de iLastTime/lastSectorTime)
-                                "suspensionTravelFL": float(valores[48]),
-                                "suspensionTravelFR": float(valores[49]),
-                                "suspensionTravelRL": float(valores[50]),
-                                "suspensionTravelRR": float(valores[51]),
+            await asyncio.sleep(0.02)
 
-                                # ===== TEMPOS DE VOLTA (area graphics) =====
-                                # Indices 36-45 sao adicionados pelo readT.c
-                                "currentTime":     valores[36].strip() if len(valores) > 36 and valores[36].strip() else "--:--.---",
-                                "lastTime":        valores[37].strip() if len(valores) > 37 and valores[37].strip() else "--:--.---",
-                                "bestTime":        valores[38].strip() if len(valores) > 38 and valores[38].strip() else "--:--.---",
-                                "split":           valores[39].strip() if len(valores) > 39 and valores[39].strip() else "--:--.---",
-                                "completedLaps":   int(valores[40]) if len(valores) > 40 and valores[40].strip().isdigit() else 0,
-                                "position":        int(valores[41]) if len(valores) > 41 and valores[41].strip().lstrip('-').isdigit() else 0,
-                                "currentSector":   int(valores[42]) if len(valores) > 42 and valores[42].strip().isdigit() else 0,
-                                "numberOfLaps":    int(valores[43]) if len(valores) > 43 and valores[43].strip().isdigit() else 0,
-                                "status":           int(valores[44]) if len(valores) > 44 and valores[44].strip().isdigit() else 0,
-                                "session":         int(valores[45]) if len(valores) > 45 and valores[45].strip().isdigit() else 0,
-                                # 46..47: iLastTime e lastSectorTime em ms (inteiros, -1 = inválido)
-                                "iLastTime":       int(valores[46]) if len(valores) > 46 and valores[46].strip().lstrip('-').isdigit() else -1,
-                                "lastSectorTime":  int(valores[47]) if len(valores) > 47 and valores[47].strip().lstrip('-').isdigit() else -1,
-                                
-                                # tyreTempI, M, O (indices 52..63)
-                                "tyreTempIFL": float(valores[52]) if len(valores) > 52 else 0.0,
-                                "tyreTempIFR": float(valores[53]) if len(valores) > 53 else 0.0,
-                                "tyreTempIRL": float(valores[54]) if len(valores) > 54 else 0.0,
-                                "tyreTempIRR": float(valores[55]) if len(valores) > 55 else 0.0,
-                                
-                                "tyreTempMFL": float(valores[56]) if len(valores) > 56 else 0.0,
-                                "tyreTempMFR": float(valores[57]) if len(valores) > 57 else 0.0,
-                                "tyreTempMRL": float(valores[58]) if len(valores) > 58 else 0.0,
-                                "tyreTempMRR": float(valores[59]) if len(valores) > 59 else 0.0,
-                                
-                                "tyreTempOFL": float(valores[60]) if len(valores) > 60 else 0.0,
-                                "tyreTempOFR": float(valores[61]) if len(valores) > 61 else 0.0,
-                                "tyreTempORL": float(valores[62]) if len(valores) > 62 else 0.0,
-                                "tyreTempORR": float(valores[63]) if len(valores) > 63 else 0.0,
-                    }
-                            
-                            # Envia para o navegador
-                            await websocket.send(json.dumps(payload))
-                        except ValueError as ve:
-                            print(f"Erro ao converter valor para float: {ve}")
-                            # Se der erro de conversão, apenas ignora essa linha e continua
-                            
-        except BlockingIOError:
-            pass # Sem dados novos no socket no momento
-        except websockets.exceptions.ConnectionClosed:
-            print("Navegador desconectou.")
-            break # Único momento aceitável para usar o break
-        except Exception as e:
-            print(f"Erro inesperado: {e}")
+async def ws_handler(websocket):
+    connected_clients.add(websocket)
+    print(f"[WebSocket] Cliente conectado! Total: {len(connected_clients)}")
 
-        # Uma pequena pausa para não fritar a CPU (20 FPS = 0.05s)
-        await asyncio.sleep(0.05)
+    try:
+        await websocket.send(json.dumps(lap_tracker.state_message()))
+    except Exception:
+        pass
+    
+    # Envia imediatamente o último dado disponível
+    if latest_telemetry_json:
+        try:
+            await websocket.send(latest_telemetry_json)
+        except Exception:
+            pass
+
+    try:
+        await websocket.wait_closed()
+    finally:
+        connected_clients.discard(websocket)
+        print(f"[WebSocket] Cliente desconectado. Restantes: {len(connected_clients)}")
 
 async def main():
-    # Inicia o servidor WebSocket na porta 8765
-    async with websockets.serve(enviar_telemetria, "localhost", 8765):
+    asyncio.create_task(socket_receiver_loop())
+    async with websockets.serve(ws_handler, "localhost", 8765):
         print("Servidor WebSocket rodando em ws://localhost:8765")
-        await asyncio.Future()  # Roda para sempre
+        await asyncio.Future()
 
 if __name__ == "__main__":
     asyncio.run(main())

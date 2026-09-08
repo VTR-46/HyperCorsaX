@@ -131,6 +131,8 @@ function generateComparison() {
         createRPMChart(aligned);
         createPedalsChart(aligned);
         createGearChart(aligned);
+        createGForceChart(aligned);
+        createSuspensionChart(aligned);
         createTyreTempChart(aligned);
         createTyrePressureChart(aligned);
         createBrakeTempChart(aligned);
@@ -161,6 +163,13 @@ function alignRunsByTime(runA, runB) {
         gasA: [], gasB: [],
         brakeA: [], brakeB: [],
         gearA: [], gearB: [],
+        gforceX_A: [], gforceX_B: [],
+        gforceY_A: [], gforceY_B: [],
+        gforceZ_A: [], gforceZ_B: [],
+        susFL_A: [], susFL_B: [],
+        susFR_A: [], susFR_B: [],
+        susRL_A: [], susRL_B: [],
+        susRR_A: [], susRR_B: [],
         tyreFL_A: [], tyreFL_B: [],
         tyreFR_A: [], tyreFR_B: [],
         tyreRL_A: [], tyreRL_B: [],
@@ -191,6 +200,13 @@ function alignRunsByTime(runA, runB) {
         aligned.gasA.push(sampleA.gas);
         aligned.brakeA.push(sampleA.brake);
         aligned.gearA.push(sampleA.gear);
+        aligned.gforceX_A.push(sampleA.accG_x ?? 0);
+        aligned.gforceY_A.push(sampleA.accG_y ?? 0);
+        aligned.gforceZ_A.push(sampleA.accG_z ?? 0);
+        aligned.susFL_A.push((sampleA.suspensionTravelFL ?? 0) * 100);
+        aligned.susFR_A.push((sampleA.suspensionTravelFR ?? 0) * 100);
+        aligned.susRL_A.push((sampleA.suspensionTravelRL ?? 0) * 100);
+        aligned.susRR_A.push((sampleA.suspensionTravelRR ?? 0) * 100);
         aligned.tyreFL_A.push(sampleA.tyreFL);
         aligned.tyreFR_A.push(sampleA.tyreFR);
         aligned.tyreRL_A.push(sampleA.tyreRL);
@@ -219,6 +235,13 @@ function alignRunsByTime(runA, runB) {
             aligned.gasB.push(sampleB.gas);
             aligned.brakeB.push(sampleB.brake);
             aligned.gearB.push(sampleB.gear);
+            aligned.gforceX_B.push(sampleB.accG_x ?? 0);
+            aligned.gforceY_B.push(sampleB.accG_y ?? 0);
+            aligned.gforceZ_B.push(sampleB.accG_z ?? 0);
+            aligned.susFL_B.push((sampleB.suspensionTravelFL ?? 0) * 100);
+            aligned.susFR_B.push((sampleB.suspensionTravelFR ?? 0) * 100);
+            aligned.susRL_B.push((sampleB.suspensionTravelRL ?? 0) * 100);
+            aligned.susRR_B.push((sampleB.suspensionTravelRR ?? 0) * 100);
             aligned.tyreFL_B.push(sampleB.tyreFL);
             aligned.tyreFR_B.push(sampleB.tyreFR);
             aligned.tyreRL_B.push(sampleB.tyreRL);
@@ -246,6 +269,13 @@ function alignRunsByTime(runA, runB) {
             aligned.gasB.push(null);
             aligned.brakeB.push(null);
             aligned.gearB.push(null);
+            aligned.gforceX_B.push(null);
+            aligned.gforceY_B.push(null);
+            aligned.gforceZ_B.push(null);
+            aligned.susFL_B.push(null);
+            aligned.susFR_B.push(null);
+            aligned.susRL_B.push(null);
+            aligned.susRR_B.push(null);
             aligned.tyreFL_B.push(null);
             aligned.tyreFR_B.push(null);
             aligned.tyreRL_B.push(null);
@@ -409,7 +439,12 @@ const commonChartOptions = {
     }
 };
 
-function createChart(canvasId, config) {
+function createChart(canvasId, config, alignedData = null) {
+    if (alignedData && alignedData.annotations) {
+        if (!config.options) config.options = {};
+        if (!config.options.plugins) config.options.plugins = {};
+        config.options.plugins.annotation = { annotations: alignedData.annotations };
+    }
     console.log('[Compare] Creating chart:', canvasId);
     const ctx = document.getElementById(canvasId).getContext('2d');
     const chart = new Chart(ctx, config);
@@ -427,7 +462,7 @@ function createSpeedChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 350 } } }
-    });
+    }, data);
 }
 
 function createRPMChart(data) {
@@ -440,7 +475,7 @@ function createRPMChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 10000 } } }
-    });
+    }, data);
 }
 
 function createPedalsChart(data) {
@@ -455,7 +490,7 @@ function createPedalsChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: -0.1, max: 1.1 } } }
-    });
+    }, data);
 }
 
 function createTyreTempChart(data) {
@@ -474,7 +509,7 @@ function createTyreTempChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 120 } } }
-    });
+    }, data);
 }
 
 function createTyrePressureChart(data) {
@@ -493,7 +528,7 @@ function createTyrePressureChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 50 } } }
-    });
+    }, data);
 }
 
 function createBrakeTempChart(data) {
@@ -512,7 +547,7 @@ function createBrakeTempChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 1000 } } }
-    });
+    }, data);
 }
 
 function createDeltaSpeedChart(data) {
@@ -525,7 +560,7 @@ function createDeltaSpeedChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -50, suggestedMax: 50 } } }
-    });
+    }, data);
 }
 
 function createFuelChart(data) {
@@ -538,7 +573,7 @@ function createFuelChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 120 } } }
-    });
+    }, data);
 }
 
 function createERSChart(data) {
@@ -551,7 +586,7 @@ function createERSChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 100 } } }
-    });
+    }, data);
 }
 
 function createSteerChart(data) {
@@ -564,7 +599,7 @@ function createSteerChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -180, suggestedMax: 180 } } }
-    });
+    }, data);
 }
 
 function createTyreWearChart(data) {
@@ -583,7 +618,7 @@ function createTyreWearChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 100 } } }
-    });
+    }, data);
 }
 
 // Gear chart (re-added since it was replaced)
@@ -597,5 +632,41 @@ function createGearChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 8, stepSize: 1 } } }
-    });
+    }, data);
+}
+
+function createGForceChart(data) {
+    createChart('gforceCompareChart', {
+        type: 'line',
+        data: {
+            datasets: [
+                { label: 'Lat (X) A', data: data.time.map((t, i) => ({ x: t, y: data.gforceX_A[i] })), borderColor: '#00D2D3', borderWidth: 1.5 },
+                { label: 'Long (Z) A', data: data.time.map((t, i) => ({ x: t, y: data.gforceZ_A[i] })), borderColor: '#F9CA24', borderWidth: 1.5 },
+                { label: 'Vert (Y) A', data: data.time.map((t, i) => ({ x: t, y: data.gforceY_A[i] })), borderColor: '#FF6B6B', borderWidth: 1.5 },
+                { label: 'Lat (X) B', data: data.time.map((t, i) => ({ x: t, y: data.gforceX_B[i] })), borderColor: '#00D2D3', borderWidth: 1.5, borderDash: [5, 5] },
+                { label: 'Long (Z) B', data: data.time.map((t, i) => ({ x: t, y: data.gforceZ_B[i] })), borderColor: '#F9CA24', borderWidth: 1.5, borderDash: [5, 5] },
+                { label: 'Vert (Y) B', data: data.time.map((t, i) => ({ x: t, y: data.gforceY_B[i] })), borderColor: '#FF6B6B', borderWidth: 1.5, borderDash: [5, 5] }
+            ]
+        },
+        options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -3, suggestedMax: 3 } } }
+    }, data);
+}
+
+function createSuspensionChart(data) {
+    createChart('suspensionCompareChart', {
+        type: 'line',
+        data: {
+            datasets: [
+                { label: 'FL A', data: data.time.map((t, i) => ({ x: t, y: data.susFL_A[i] })), borderColor: '#FF33A1', borderWidth: 1.5 },
+                { label: 'FR A', data: data.time.map((t, i) => ({ x: t, y: data.susFR_A[i] })), borderColor: '#33FFA1', borderWidth: 1.5 },
+                { label: 'RL A', data: data.time.map((t, i) => ({ x: t, y: data.susRL_A[i] })), borderColor: '#33A1FF', borderWidth: 1.5 },
+                { label: 'RR A', data: data.time.map((t, i) => ({ x: t, y: data.susRR_A[i] })), borderColor: '#F3FF33', borderWidth: 1.5 },
+                { label: 'FL B', data: data.time.map((t, i) => ({ x: t, y: data.susFL_B[i] })), borderColor: '#FF33A1', borderWidth: 1.5, borderDash: [5, 5] },
+                { label: 'FR B', data: data.time.map((t, i) => ({ x: t, y: data.susFR_B[i] })), borderColor: '#33FFA1', borderWidth: 1.5, borderDash: [5, 5] },
+                { label: 'RL B', data: data.time.map((t, i) => ({ x: t, y: data.susRL_B[i] })), borderColor: '#33A1FF', borderWidth: 1.5, borderDash: [5, 5] },
+                { label: 'RR B', data: data.time.map((t, i) => ({ x: t, y: data.susRR_B[i] })), borderColor: '#F3FF33', borderWidth: 1.5, borderDash: [5, 5] }
+            ]
+        },
+        options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -2, suggestedMax: 30 } } }
+    }, data);
 }

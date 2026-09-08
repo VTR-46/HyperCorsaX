@@ -98,9 +98,14 @@ int main()
         "Local\\acpmf_graphics",
         "Local\\acpmw_graphics"
     };
+    const char *const staticNames[] = {
+        "Local\\acpmf_static",
+        "Local\\acpmw_static"
+    };
 
-    const char *physicsName = NULL;
+    const char *physicsName  = NULL;
     const char *graphicsName = NULL;
+    const char *staticName   = NULL;
 
     HANDLE hMapFile = open_mapping_any(physicsNames, sizeof(physicsNames) / sizeof(physicsNames[0]), &physicsName);
     SPageFilePhysics *physics = NULL;
@@ -110,6 +115,11 @@ int main()
     HANDLE hMapGraphic = open_mapping_any(graphicsNames, sizeof(graphicsNames) / sizeof(graphicsNames[0]), &graphicsName);
     SPageFileGraphic *graphics = NULL;
     int tem_graphics = 0;
+
+    // Area STATIC: dados fixos do carro (carModel, maxTorque, maxPower, etc.)
+    HANDLE hMapStatic = open_mapping_any(staticNames, sizeof(staticNames) / sizeof(staticNames[0]), &staticName);
+    SPageFileStatic *statics = NULL;
+    int tem_static = 0;
 
     if (hMapFile != NULL)
     {
@@ -135,6 +145,18 @@ int main()
         }
     }
 
+    if (hMapStatic != NULL)
+    {
+        statics = (SPageFileStatic *)MapViewOfFile(
+            hMapStatic, FILE_MAP_READ, 0, 0, sizeof(SPageFileStatic));
+
+        if (statics != NULL)
+        {
+            tem_static = 1;
+            printf("Assetto Corsa STATIC detectado via %s! Lendo dados do carro...\n", staticName != NULL ? staticName : "shared memory desconhecida");
+        }
+    }
+
     if (!tem_dados)
     {
         printf("AVISO: Assetto Corsa nao encontrado. Enviando dados de teste...\n");
@@ -142,13 +164,60 @@ int main()
     }
 
     char sCurrent[32], sLast[32], sBest[32], sSplit[32];
+    char sCarModel[64];
 
-    char buffer[768];
+    char buffer[1024];
     int contador = 0;
 
     while (1)
     {
-        if (tem_dados)
+        // Tenta reconectar/detectar o Assetto Corsa periodicamente se ainda não conectado
+        if ((contador % 60) == 0)
+        {
+            if (!tem_dados)
+            {
+                hMapFile = open_mapping_any(physicsNames, sizeof(physicsNames) / sizeof(physicsNames[0]), &physicsName);
+                if (hMapFile != NULL)
+                {
+                    physics = (SPageFilePhysics *)MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, sizeof(SPageFilePhysics));
+                    if (physics != NULL)
+                    {
+                        tem_dados = 1;
+                        printf("\n[AC] Physics conectado via %s!\n", physicsName != NULL ? physicsName : "shm");
+                    }
+                }
+            }
+
+            if (!tem_graphics)
+            {
+                hMapGraphic = open_mapping_any(graphicsNames, sizeof(graphicsNames) / sizeof(graphicsNames[0]), &graphicsName);
+                if (hMapGraphic != NULL)
+                {
+                    graphics = (SPageFileGraphic *)MapViewOfFile(hMapGraphic, FILE_MAP_READ, 0, 0, sizeof(SPageFileGraphic));
+                    if (graphics != NULL)
+                    {
+                        tem_graphics = 1;
+                        printf("\n[AC] Graphics conectado via %s!\n", graphicsName != NULL ? graphicsName : "shm");
+                    }
+                }
+            }
+
+            if (!tem_static)
+            {
+                hMapStatic = open_mapping_any(staticNames, sizeof(staticNames) / sizeof(staticNames[0]), &staticName);
+                if (hMapStatic != NULL)
+                {
+                    statics = (SPageFileStatic *)MapViewOfFile(hMapStatic, FILE_MAP_READ, 0, 0, sizeof(SPageFileStatic));
+                    if (statics != NULL)
+                    {
+                        tem_static = 1;
+                        printf("\n[AC] Static conectado via %s!\n", staticName != NULL ? staticName : "shm");
+                    }
+                }
+            }
+        }
+
+        if (tem_dados && physics != NULL)
         {
             // Dados reais do Assetto Corsa (fisica) + tempos de volta (graphics)
             // Atualiza as strings de tempo a partir da area graphics, se disponivel.
@@ -184,7 +253,7 @@ int main()
                 "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,"     // 21..30 (10)
                 "%.1f,%.1f,%f,%f,%f,"                                     // 31..35 (5)
                 "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f," // 36..51 (16)
-                "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n", // 52..63 (12)
+                "%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f", // 52..63 (12)
                 physics->speedKmh,
                 (float)physics->rpms,
                 physics->gear - 1,
@@ -252,17 +321,78 @@ int main()
                 physics->tyreTempI[0], physics->tyreTempI[1], physics->tyreTempI[2], physics->tyreTempI[3],
                 physics->tyreTempM[0], physics->tyreTempM[1], physics->tyreTempM[2], physics->tyreTempM[3],
                 physics->tyreTempO[0], physics->tyreTempO[1], physics->tyreTempO[2], physics->tyreTempO[3]);
+
+            // -------- Dados Estaticos + Ambiente (64..79) --------
+            // Converte carModel de wchar_t para ASCII
+            if (tem_static && statics != NULL)
+            {
+                size_t n = wcstombs(sCarModel, statics->carModel, sizeof(sCarModel) - 1);
+                if (n == (size_t)-1) sCarModel[0] = '\0';
+                else {
+                    sCarModel[n] = '\0';
+                    // Remove vírgulas se houver no nome do modelo
+                    for (size_t i = 0; sCarModel[i] != '\0'; i++) {
+                        if (sCarModel[i] == ',') sCarModel[i] = ' ';
+                    }
+                }
+            }
+            else
+            {
+                sCarModel[0] = '\0';
+            }
+
+            float s_maxTorque          = (tem_static && statics) ? statics->maxTorque          : 0.0f;
+            float s_maxPower           = (tem_static && statics) ? statics->maxPower            : 0.0f;
+            int   s_maxRpm             = (tem_static && statics) ? statics->maxRpm              : 0;
+            float s_maxFuel            = (tem_static && statics) ? statics->maxFuel             : 0.0f;
+            float s_suspMaxFL          = (tem_static && statics) ? statics->suspensionMaxTravel[0] : 0.0f;
+            float s_suspMaxFR          = (tem_static && statics) ? statics->suspensionMaxTravel[1] : 0.0f;
+            float s_suspMaxRL          = (tem_static && statics) ? statics->suspensionMaxTravel[2] : 0.0f;
+            float s_suspMaxRR          = (tem_static && statics) ? statics->suspensionMaxTravel[3] : 0.0f;
+            float s_maxTurboBoost      = (tem_static && statics) ? statics->maxTurboBoost       : 0.0f;
+            int   s_hasDRS             = (tem_static && statics) ? statics->hasDRS              : 0;
+            int   s_hasERS             = (tem_static && statics) ? statics->hasERS              : 0;
+            int   s_hasKERS            = (tem_static && statics) ? statics->hasKERS             : 0;
+            float s_surfaceGrip        = (tem_graphics && graphics) ? graphics->surfaceGrip     : 0.0f;
+            float s_windSpeed          = (tem_graphics && graphics) ? graphics->windSpeed        : 0.0f;
+            float s_windDirection      = (tem_graphics && graphics) ? graphics->windDirection    : 0.0f;
+
+            // Concatena campos 64..79 ao buffer
+            char extraBuf[256];
+            snprintf(extraBuf, sizeof(extraBuf),
+                ",%s,%.2f,%.2f,%d,%.2f,%.4f,%.4f,%.4f,%.4f,%.4f,%d,%d,%d,%.4f,%.2f,%.2f,%.4f,%.4f\n",
+                sCarModel,          // 64
+                s_maxTorque,        // 65
+                s_maxPower,         // 66
+                s_maxRpm,           // 67
+                s_maxFuel,          // 68
+                s_suspMaxFL,        // 69
+                s_suspMaxFR,        // 70
+                s_suspMaxRL,        // 71
+                s_suspMaxRR,        // 72
+                s_maxTurboBoost,    // 73
+                s_hasDRS,           // 74
+                s_hasERS,           // 75
+                s_hasKERS,          // 76
+                s_surfaceGrip,      // 77
+                s_windSpeed,        // 78
+                s_windDirection,    // 79
+                physics->rideHeight[0], // 80
+                physics->rideHeight[1]); // 81
+
+            strncat(buffer, extraBuf, sizeof(buffer) - strlen(buffer) - 1);
         }
         else
         {
-            // Modo teste: 36 zeros + tempos N/A + sessao zerada + iLastTime/lastSectorTime = -1
+            // Modo teste: 64 zeros/N/A (0..63) + 16 campos estaticos/ambiente (64..79) + 2 rideHeight (80..81)
             sprintf(buffer,
                 "0.00,0,0,0.0000,0.0000,0.00,0.0000,0.00,0.000,0.000,0.000,"
                 "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0000,0.0,"
                 "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,"
                 "0.0,0.0,0.000000,0.000000,0.000000,"
                 "%s,%s,%s,%s,0,0,0,0,0,0,-1,-1,0.00,0.00,0.00,0.00,"
-                "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0\n",
+                "0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,"
+                "TEST_CAR,0.00,0.00,0,0.00,0.0000,0.0000,0.0000,0.0000,0.0000,0,0,0,0.0000,0.00,0.00,0.00,0.00\n",
                 LAP_EMPTY, LAP_EMPTY, LAP_EMPTY, LAP_EMPTY);
         }
 
@@ -298,6 +428,10 @@ int main()
         UnmapViewOfFile(graphics);
     if (hMapGraphic)
         CloseHandle(hMapGraphic);
+    if (statics)
+        UnmapViewOfFile(statics);
+    if (hMapStatic)
+        CloseHandle(hMapStatic);
     closesocket(client);
     closesocket(server);
     WSACleanup();

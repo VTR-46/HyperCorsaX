@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
 
     <link rel="stylesheet" href="../Style/wb.css">
     <link rel="stylesheet" href="../src/output.css">
@@ -21,14 +22,43 @@
         <div class="header-brand">
             <img src="../img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
             <h1 class="header-tab-name">CONTROLE</h1>
+            <div class="header-category">
+                <img src="../img/Formula.png" alt="Formula" class="header-category-img">
+                <span class="header-category-text">FORMULA</span>
+            </div>
         </div>
         <div class="header-actions">
-            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
+            <div id="lap-sector-badge" class="lap-sector-badge">
+                <span id="badge-lap">Volta --</span>
+                <span id="badge-sector" class="badge-sector">S--</span>
+            </div>
+            <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
+            <span id="lapRecordStatus" class="lap-record-status hidden"></span>
+            <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>
             <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
         </div>
     </div>
 
+    <!-- ===================== MODAL: NÚMERO DE VOLTAS ===================== -->
+    <div id="lapRecordModal" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
+        <div class="modal-box">
+            <h2 class="modal-title">Gravar Telemetria</h2>
+            <p class="modal-desc">Quantas voltas deseja gravar?</p>
+            <input id="lapCountInput" type="number" min="1" max="99" value="1" class="modal-input" />
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeLapModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmLapRecord()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <section id="headerSectionT" class="headerSectionT mt-5 w-full rounded-2xl  bg-slate-900/80 p-4">
+
+        <a href="../graphics.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="../img/info.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">INFO</span>
+        </a>
 
         <a href="./engine.html"
             class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
@@ -76,6 +106,21 @@
         <div class="chart-container">
             <h3>Suspensão (Travel)</h3>
             <canvas id="suspensionChart"></canvas>
+        </div>
+        <div class="chart-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+            <h3 style="margin: 0; align-self: flex-start;">Altura (Ride Height)</h3>
+            <div style="position: relative; width: 100%; max-width: 500px; aspect-ratio: 2 / 1; background: #111; border: 2px solid #333; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+                <div style="position: relative; width: 100%; height: 100%;">
+                    <!-- As rodas ficam paradas por cima (z-index 2) -->
+                    <img src="../img/F1Wheels.png" alt="Rodas" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 85%; z-index: 2;">
+                    <!-- O chassi se move por baixo das rodas (z-index 1) -->
+                    <img id="car-chassis" src="../img/F1Chassi.png" alt="Chassi" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 85%; z-index: 1; transition: transform 0.05s linear;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; width: 100%; max-width: 500px; color: #888; font-size: 16px;">
+                <span>Traseira: <b id="rh-rear-val" style="color: #fff;">0.0 mm</b></span>
+                <span>Frente: <b id="rh-front-val" style="color: #fff;">0.0 mm</b></span>
+            </div>
         </div>
     </div>
 
@@ -155,61 +200,63 @@
 
     </div>
 
-    <div class="meter-panel-2">
+    <div class="meter-panel-group">
+        <div class="meter-panel-2">
 
-        <div class="meter-clutch">
-            <h3>EMBREAGEM</h3>
-            <div class="meter-box-clutch">
-                <div id="clutchFill" class="meter-fill" style="background: #0004FF;">
+            <div class="meter-clutch">
+                <h3>EMBREAGEM</h3>
+                <div class="meter-box-clutch">
+                    <div id="clutchFill" class="meter-fill" style="background: #0004FF;">
+                    </div>
                 </div>
+                <div id="clutchValue" class="meter-value">0 %</div>
             </div>
-            <div id="clutchValue" class="meter-value">0 %</div>
+
+            <div class="meter-brake">
+                <h3>FREIO</h3>
+                <div class="meter-box-brake">
+                    <div id="brakeFill" class="meter-fill" style="background: #0004FF;">
+                    </div>
+                </div>
+                <div id="brakeValue" class="meter-value">0 %</div>
+            </div>
+
+            <div class="meter-gas">
+                <h3>ACELERADOR</h3>
+                <div class="meter-box-gas">
+                    <div id="gasFill" class="meter-fill" style="background: #0004FF;">
+                    </div>
+                </div>
+                <div id="gasValue" class="meter-value">0 %</div>
+            </div>
+
         </div>
 
-        <div class="meter-brake">
-            <h3>FREIO</h3>
-            <div class="meter-box-brake">
-                <div id="brakeFill" class="meter-fill" style="background: #0004FF;">
+        <div class="meter-panel-2">
+
+            <div class="meter-combustivel">
+                <h3>COMBUSTIVEL</h3>
+                <div class="meter-box-fuel">
+                    <div id="fuelFill" class="meter-fill" style="background: #0004FF;">
+                    </div>
                 </div>
+                <div id="fuelValue" class="meter-value">0 L</div>
             </div>
-            <div id="brakeValue" class="meter-value">0 %</div>
-        </div>
 
-        <div class="meter-gas">
-            <h3>ACELERADOR</h3>
-            <div class="meter-box-gas">
-                <div id="gasFill" class="meter-fill" style="background: #0004FF;">
+            <div class="meter-ers">
+                <h3>ERS</h3>
+                <div class="meter-box-ers">
+                    <div id="ersFill" class="meter-fill" style="background: #0004FF;">
+                    </div>
                 </div>
+                <div id="ersValue" class="meter-value">0 %</div>
             </div>
-            <div id="gasValue" class="meter-value">0 %</div>
+
         </div>
-
-    </div>
-
-    <div class="meter-panel-2">
-
-        <div class="meter-combustivel">
-            <h3>COMBUSTIVEL</h3>
-            <div class="meter-box-fuel">
-                <div id="fuelFill" class="meter-fill" style="background: #0004FF;">
-                </div>
-            </div>
-            <div id="fuelValue" class="meter-value">0 L</div>
-        </div>
-
-        <div class="meter-ers">
-            <h3>ERS</h3>
-            <div class="meter-box-ers">
-                <div id="ersFill" class="meter-fill" style="background: #0004FF;">
-                </div>
-            </div>
-            <div id="ersValue" class="meter-value">0 %</div>
-        </div>
-
-
     </div>
 
     <script src="../JS/recorder.js"></script>
+    <script src="../JS/wbScriptShared.js"></script>
     <script src="../JS/wbScriptControl.js"></script>
 </body>
 

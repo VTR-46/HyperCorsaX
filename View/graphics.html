@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
 
     <link rel="stylesheet" href="../View/Style/wb.css">
     <link rel="stylesheet" href="../View/src/output.css">
@@ -18,13 +19,80 @@
 <body>
 
     <div class="header">
-        <h2>HYPERCORSA - Telemetria em Tempo Real</h2>
+        <div class="header-brand">
+            <img src="./img/bannerIcon.png" alt="HyperCorsaX" class="header-logo">
+            <h1 class="header-tab-name">INFO</h1>
+            <div class="header-category">
+                <img src="./img/Formula.png" alt="Formula" class="header-category-img">
+                <span class="header-category-text">FORMULA</span>
+            </div>
+        </div>
         <div class="header-actions">
-            <button id="btnRecord" class="btn-record" onclick="toggleRecording()" title="Clique para iniciar gravação">🔴 GRAVAR</button>
-            <button id="btnAutoScroll" class="btn-scroll" onclick="toggleAutoScroll()">Auto-Scroll: LIGADO</button>
+            <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
+            <span id="lapRecordStatus" class="lap-record-status hidden"></span>
+            <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>
         </div>
     </div>
 
+    <!-- ===================== MODAL: NÚMERO DE VOLTAS ===================== -->
+    <div id="lapRecordModal" class="modal-overlay hidden" onclick="handleModalOverlayClick(event)">
+        <div class="modal-box">
+            <h2 class="modal-title">Gravar Telemetria</h2>
+            <p class="modal-desc">Quantas voltas deseja gravar?</p>
+            <input id="lapCountInput" type="number" min="1" max="99" value="1" class="modal-input" />
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeLapModal()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmLapRecord()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== FIM PAINEL TEMPOS DE VOLTA ===================== -->
+
+    <section id="headerSectionT" class="headerSectionT mt-5 w-full rounded-2xl  bg-slate-900/80 p-4">
+
+        <a href="../View/graphics.html"
+            class="group inline-flex items-center gap-3 border border-yellow-300 bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-400 hover:from-yellow-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="./img/info.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">INFO</span>
+        </a>
+
+        <a href="../View/sc/engine.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="./img/engine.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">POWERTRAIN</span>
+        </a>
+
+        <a href="../View/sc/control.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="./img/steeringWheel.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">CONTROLE</span>
+        </a>
+
+        <a href="../View/sc/wheels.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="./img/wheel.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">RODAS</span>
+        </a>
+
+        <a href="compare.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="./img/clock.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">COMPARAR</span>
+        </a>
+
+        <a href="../View/sc/tempos.html"
+            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
+            <img src="./img/CompTime.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
+            <span class="text-sm font-semibold uppercase tracking-[0.2em]">TEMPOS</span>
+        </a>
+
+
+    </section>
+
+    <br>
+
+    
     <!-- ===================== PAINEL TEMPOS DE VOLTA ===================== -->
     <section id="lapPanel" class="lap-panel">
         <div class="lap-block lap-block-current">
@@ -67,130 +135,132 @@
             <span id="lap-sector" class="lap-value">0</span>
         </div>
     </section>
-    <!-- ===================== FIM PAINEL TEMPOS DE VOLTA ===================== -->
-
-    <section id="headerSectionT" class="headerSectionT mt-5 w-full rounded-2xl  bg-slate-900/80 p-4">
-
-        <a href="../View/sc/engine.html"
-            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
-            <img src="./img/engine.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
-            <span class="text-sm font-semibold uppercase tracking-[0.2em]">POWERTRAIN</span>
-        </a>
-
-        <a href="../View/sc/control.html"
-            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
-            <img src="./img/steeringWheel.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
-            <span class="text-sm font-semibold uppercase tracking-[0.2em]">CONTROLE</span>
-        </a>
-
-        <a href="../View/sc/wheels.html"
-            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 hover:from-cyan-yellow/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
-            <img src="./img/wheel.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
-            <span class="text-sm font-semibold uppercase tracking-[0.2em]">RODAS</span>
-        </a>
-
-        <a href="compare.html"
-            class="group inline-flex items-center gap-3 border border-yellow-300 bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-400 hover:from-yellow-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
-            <img src="./img/clock.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
-            <span class="text-sm font-semibold uppercase tracking-[0.2em]">COMPARAR</span>
-        </a>
-
-        <a href="../View/sc/tempos.html"
-            class="group inline-flex items-center gap-3 border border-white bg-linear-to-br px-4 py-2 text-slate-100 transition duration-300 hover:-translate-y-0.5 hover:border-yellow-300/60 focus:outline-none focus:ring-2 focus:ring-yellow-400/70 focus:ring-offset-2 focus:ring-offset-slate-950">
-            <img src="./img/CompTime.png" alt="Abrir tela do motor" class="h-10 w-10 -xlp-1.5 ">
-            <span class="text-sm font-semibold uppercase tracking-[0.2em]">TEMPOS</span>
-        </a>
 
 
-    </section>
+    <!-- ===================== PAINEL: CAR INFO + AMBIENTE ===================== -->
+    <!-- <div class="info-panels-row">
 
-    <br>
+        <!-- ===== SEÇÃO 1: CAR INFO ===== -->
+        <!-- <section class="info-panel car-info-panel">
+            <h2 class="info-panel-title">🏎️ CAR INFO</h2>
 
-    <div class="dashboard">
-        <div class="chart-container">
-            <canvas id="speedChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <canvas id="pedalsChart"></canvas>
-        </div>
-    </div>
-
-    <div class="meter-panel">
-        <h3 class="meter-title">Freios e Pneus</h3>
-        <div class="meter-grid">
-
-            <div class="meter-esquerda">
-                <div id="tyrePsiValueFL" class="meter-value">0 psi</div>
-                <div id="tyreTempValueFL" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreFLFill" class="meter-fill" style="background: #0004FF;"></div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-label">TORQUE MÁX</span>
+                    <span id="inf-maxTorque" class="info-value">-- <span class="info-unit">Nm</span></span>
                 </div>
-                <div class="meter-label">Pneu FL</div>
-                <div id="tyreFLValue" class="meter-value">0°C</div>
-            </div>
-            <div class="meter-esquerda">
-                <div class="meter-box-freio">
-                    <div id="brakeFLFill" class="meter-fill" style="background: #0004FF;"></div>
+                <div class="info-card">
+                    <span class="info-label">POTÊNCIA MÁX</span>
+                    <span id="inf-maxPower" class="info-value">-- <span class="info-unit">W</span></span>
                 </div>
-                <div class="meter-label">Freio FL</div>
-                <div id="brakeFLValue" class="meter-value">0%</div>
-            </div>
-            <div class="meter-direita">
-                <div class="meter-box-freio">
-                    <div id="brakeFRFill" class="meter-fill" style="background: #0004FF;"></div>
+                <div class="info-card">
+                    <span class="info-label">RPM MÁX</span>
+                    <span id="inf-maxRpm" class="info-value">-- <span class="info-unit">rpm</span></span>
                 </div>
-                <div class="meter-label">Freio FR</div>
-                <div id="brakeFRValue" class="meter-value">0%</div>
-            </div>
+                <div class="info-card">
+                    <span class="info-label">COMBUSTÍVEL MÁX</span>
+                    <span id="inf-maxFuel" class="info-value">-- <span class="info-unit">L</span></span>
+                </div>
+                <div class="info-card">
+                    <span class="info-label">TURBO MÁX</span>
+                    <span id="inf-maxTurboBoost" class="info-value">-- <span class="info-unit">bar</span></span>
+                </div>
+            </div> -->
 
-            <div class="meter-direita">
-                <div id="tyrePsiValueFR" class="meter-value">0 psi</div>
-                <div id="tyreTempValueFR" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreFRFill" class="meter-fill" style="background: #0004FF;"></div>
+            <!-- Suspensão MaxTravel -->
+            <!-- <div class="susp-section">
+                <span class="info-label" style="display:block;margin-bottom:6px;">SUSPENSÃO MÁX TRAVEL</span>
+                <div class="susp-grid">
+                    <div class="susp-card">
+                        <span class="susp-pos">FL</span>
+                        <span id="inf-suspFL" class="susp-val">--</span>
+                        <span class="info-unit">m</span>
+                    </div>
+                    <div class="susp-card">
+                        <span class="susp-pos">FR</span>
+                        <span id="inf-suspFR" class="susp-val">--</span>
+                        <span class="info-unit">m</span>
+                    </div>
+                    <div class="susp-card">
+                        <span class="susp-pos">RL</span>
+                        <span id="inf-suspRL" class="susp-val">--</span>
+                        <span class="info-unit">m</span>
+                    </div>
+                    <div class="susp-card">
+                        <span class="susp-pos">RR</span>
+                        <span id="inf-suspRR" class="susp-val">--</span>
+                        <span class="info-unit">m</span>
+                    </div>
                 </div>
-                <div class="meter-label">Pneu FR</div>
-                <div id="tyreFRValue" class="meter-value">0°C</div>
-            </div>
+            </div> -->
 
-            <div class="meter-esquerda">
-                <div id="tyrePsiValueRL" class="meter-value">0 psi</div>
-                <div id="tyreTempValueRL" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreRLFIll" class="meter-fill" style="background: #0004FF;"></div>
+            <!-- Botões DRS / ERS / KERS -->
+            <!-- <div class="flag-buttons">
+                <button id="btn-hasDRS" class="flag-btn flag-btn-off">DRS &nbsp; FALSE</button>
+                <button id="btn-hasERS" class="flag-btn flag-btn-off">ERS &nbsp; FALSE</button>
+                <button id="btn-hasKERS" class="flag-btn flag-btn-off">KERS FALSE</button>
+            </div>
+        </section> -->
+
+        <!-- ===== SEÇÃO 2: AMBIENTE ===== -->
+        <!-- <section class="info-panel env-panel">
+            <h2 class="info-panel-title">🌤️ AMBIENTE</h2>
+
+            <div class="info-grid" style="margin-bottom:18px;">
+                <div class="info-card">
+                    <span class="info-label">GRIP PISTA</span>
+                    <span id="inf-surfaceGrip" class="info-value">-- <span class="info-unit">%</span></span>
                 </div>
-                <div class="meter-label">Pneu RL</div>
-                <div id="tyreRLValue" class="meter-value">0°C</div>
-            </div>
-
-            <div class="meter-esquerda">
-                <div class="meter-box-freio">
-                    <div id="brakeRLFIll" class="meter-fill" style="background: #0004FF;"></div>
+                <div class="info-card">
+                    <span class="info-label">VENTO</span>
+                    <span id="inf-windSpeed" class="info-value">-- <span class="info-unit">km/h</span></span>
                 </div>
-                <div class="meter-label">Freio RL</div>
-                <div id="brakeRLValue" class="meter-value">0%</div>
-            </div>
-            <div class="meter-direita">
-                <div class="meter-box-freio">
-                    <div id="brakeRRFIll" class="meter-fill" style="background: #0004FF;"></div>
+            </div> -->
+
+            <!-- Bússola de vento -->
+            <!-- <div class="compass-wrapper">
+                <span class="info-label" style="display:block;text-align:center;margin-bottom:8px;">DIREÇÃO DO VENTO</span>
+                <div class="compass-container">
+                    <svg id="compass-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg"> -->
+                        <!-- Anel externo -->
+                        <!-- <circle cx="80" cy="80" r="74" fill="none" stroke="#334155" stroke-width="4"/> -->
+                        <!-- Marcadores cardeais -->
+                        <!-- <text x="80" y="14"  text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="bold" font-family="monospace">N</text>
+                        <text x="150" y="84" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="monospace">E</text>
+                        <text x="80" y="154" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="monospace">S</text>
+                        <text x="10"  y="84" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="monospace">W</text> -->
+                        <!-- Ticks de 45° -->
+                        <!-- <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(45,80,80)"/>
+                        <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(90,80,80)"/>
+                        <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(135,80,80)"/>
+                        <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(180,80,80)"/>
+                        <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(225,80,80)"/>
+                        <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(270,80,80)"/>
+                        <line x1="80" y1="10" x2="80" y2="20" stroke="#475569" stroke-width="2" transform="rotate(315,80,80)"/> -->
+                        <!-- Círculo interno -->
+                        <!-- <circle cx="80" cy="80" r="8" fill="#1e293b" stroke="#475569" stroke-width="2"/> -->
+                        <!-- Agulha Norte (vermelha) -->
+                        <!-- <polygon id="compass-needle-n"
+                            points="80,18 74,80 86,80"
+                            fill="#ef4444"
+                            transform="rotate(0,80,80)"/> -->
+                        <!-- Agulha Sul (cinza) -->
+                        <!-- <polygon id="compass-needle-s"
+                            points="80,142 74,80 86,80"
+                            fill="#64748b"
+                            transform="rotate(0,80,80)"/> -->
+                        <!-- Valor em graus -->
+                        <!-- <text id="compass-deg" x="80" y="100" text-anchor="middle" fill="#e2e8f0"
+                            font-size="11" font-family="monospace">0°</text> -->
+                    </svg>
                 </div>
-                <div class="meter-label">Freio RR</div>
-                <div id="brakeRRValue" class="meter-value">0%</div>
             </div>
+        </section>
 
-            <div class="meter-direita">
-                <div id="tyrePsiValueRR" class="meter-value">0 psi</div>
-                <div id="tyreTempValueRR" class="meter-value">0 °C</div>
-                <div class="meter-box">
-                    <div id="tyreRRFIll" class="meter-fill" style="background: #0004FF;"></div>
-                </div>
-                <div class="meter-label">Pneu RR</div>
-                <div id="tyreRRValue" class="meter-value">0°C</div>
-            </div>
-        </div>
-    </div>
+    </div> 
+    <!-- /.info-panels-row -->
 
-
+    <!--
     <section id="dano-carro" class="damage-panel" aria-label="Mapa de dano do carro">
         <h3>DANO DO CARRO</h3>
 
@@ -223,31 +293,12 @@
             <span class="geral-damage-label">Dano Geral</span>
             <strong class="damage-value damage-value-general">0%</strong>
         </div>
-    </section>
+    </section> -->
 
-    <div class="meter-panel-2">
-
-        <div class="meter-combustivel">
-            <h3>COMBUSTIVEL</h3>
-            <div class="meter-box-fuel">
-                <div id="fuelFill" class="meter-fill" style="background: #0004FF;">
-                </div>
-            </div>
-            <div id="fuelValue" class="meter-value">0 L</div>
-        </div>
-
-        <div class="meter-ers">
-            <h3>ERS</h3>
-            <div class="meter-box-ers">
-                <div id="ersFill" class="meter-fill" style="background: #0004FF;">
-                </div>
-            </div>
-            <div id="ersValue" class="meter-value">0 %</div>
-        </div>
-
-    </div>
     <script src="../View/JS/recorder.js"></script>
+    <script src="../View/JS/wbScriptShared.js"></script>
     <script src="../View/JS/wbScript.js"></script>
 </body>
 
 </html>
+

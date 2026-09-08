@@ -1,6 +1,5 @@
 let autoScroll = true;
 const janelaTempo = 200; // Quantos segundos mostrar na tela por padrão
-const startTime = Date.now();
 
 // Quando o usuário interagir com o gráfico (arrastar/zoom) desliga o Auto-Scroll
 const pausarAutoScroll = () => {
@@ -114,6 +113,50 @@ const brakeChart = new Chart(ctxBrakeTemp, {
     },
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 100, max: 1400, ...commonOptions.scales.y } } }
 });
+
+function repopulateChartsFromBuffer() {
+    const history = sharedTelemetryBuffer.getAll();
+    if (history.length === 0) return;
+
+    history.forEach((packet) => {
+        const t = packet.t;
+        const wearValues = [
+            getNormalizedWear(packet.tyreWFL ?? 0, 'FL'),
+            getNormalizedWear(packet.tyreWFR ?? 0, 'FR'),
+            getNormalizedWear(packet.tyreWRL ?? 0, 'RL'),
+            getNormalizedWear(packet.tyreWRR ?? 0, 'RR')
+        ];
+        const tyreValues = [
+            packet.tyreFL ?? 0,
+            packet.tyreFR ?? 0,
+            packet.tyreRL ?? 0,
+            packet.tyreRR ?? 0
+        ];
+        const pressureValues = [
+            packet.tyrePressureFL ?? 0,
+            packet.tyrePressureFR ?? 0,
+            packet.tyrePressureRL ?? 0,
+            packet.tyrePressureRR ?? 0
+        ];
+        const brakeValues = [
+            packet.brakeFL ?? 0,
+            packet.brakeFR ?? 0,
+            packet.brakeRL ?? 0,
+            packet.brakeRR ?? 0
+        ];
+
+        wearValues.forEach((value, index) => wearChart.data.datasets[index].data.push({ x: t, y: value }));
+        wearChart.data.datasets[4].data.push({ x: t, y: averageTyreWear(...wearValues) });
+        tyreValues.forEach((value, index) => tempChart.data.datasets[index].data.push({ x: t, y: value }));
+        pressureValues.forEach((value, index) => pressureChart.data.datasets[index].data.push({ x: t, y: value }));
+        brakeValues.forEach((value, index) => brakeChart.data.datasets[index].data.push({ x: t, y: value }));
+    });
+
+    [wearChart, tempChart, pressureChart, brakeChart].forEach((chart) => {
+        chart.annotVersion = syncChartAnnotations(chart, -1);
+        chart.update();
+    });
+}
 
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -333,9 +376,18 @@ const ws = new WebSocket('ws://localhost:8765');
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
+    if (data.type) {
+        if (window.consumeLapMessage) window.consumeLapMessage(data);
+        return;
+    }
     // Feed recorder for comparison feature
     if (window.updateRecorderData) window.updateRecorderData(data);
-    const t = (Date.now() - startTime) / 1000;
+    if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
+    const t = (Date.now() - sharedStartTime) / 1000;
+    checkSessionRestart(t);
+    data.t = t;
+    sharedTelemetryBuffer.push(data);
+    updateSectorBadge(data);
 
 
 
@@ -481,11 +533,31 @@ ws.onmessage = function (event) {
         tempChart.options.scales.x.max = t;
     }
 
+    if (typeof syncChartAnnotations !== 'undefined') {
+        wearChart.annotVersion = syncChartAnnotations(wearChart, wearChart.annotVersion);
+        tempChart.annotVersion = syncChartAnnotations(tempChart, tempChart.annotVersion);
+        pressureChart.annotVersion = syncChartAnnotations(pressureChart, pressureChart.annotVersion);
+        brakeChart.annotVersion = syncChartAnnotations(brakeChart, brakeChart.annotVersion);
+    }
+
     wearChart.update('none');
     tempChart.update('none');
     pressureChart.update('none');
     brakeChart.update('none');
 };
 
-ws.onopen = () => console.log("Conectado à telemetria!");
+ws.onopen = () => {
+    console.log("Conectado à telemetria!");
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● CONECTADO'; el.className = 'ws-status ws-ok'; }
+};
+
+ws.onclose = () => {
+    const el = document.getElementById('t-ws-status');
+    if (el) { el.textContent = '● DESCONECTADO'; el.className = 'ws-status ws-off'; }
+};
+
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+repopulateChartsFromBuffer();
+
