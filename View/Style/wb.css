@@ -1928,26 +1928,26 @@ body {
 
 /* Badge de Setor e Volta */
 .lap-sector-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-family: monospace;
-    font-size: 16px;
-    font-weight: bold;
-    color: #ddd;
-    z-index: 100;
-    display: flex;
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    pointer-events: none;
+    background-color: #1e1e1e;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    user-select: none;
 }
 
 .badge-sector {
     padding-left: 8px;
-    border-left: 1px solid #555;
+    border-left: 1px solid #4b5563;
+    font-weight: 800;
 }
 
 .badge-sector.s1 {
@@ -1955,10 +1955,10 @@ body {
 }
 
 .badge-sector.s2 {
-    color: #FFD700;
+    color: #facc15;
 }
 
 .badge-sector.s3 {
-    color: #00FF88;
+    color: #22c55e;
 }
 

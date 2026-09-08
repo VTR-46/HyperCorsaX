@@ -28,6 +28,10 @@
             </div>
         </div>
         <div class="header-actions">
+            <div id="lap-sector-badge" class="lap-sector-badge">
+                <span id="badge-lap">Volta --</span>
+                <span id="badge-sector" class="badge-sector">S--</span>
+            </div>
             <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
             <span id="lapRecordStatus" class="lap-record-status hidden"></span>
             <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>
@@ -92,10 +96,6 @@
 
     <div class="dashboard">
         <div class="chart-container">
-            <div id="lap-sector-badge" class="lap-sector-badge">
-                <span id="badge-lap">Volta --</span>
-                <span id="badge-sector" class="badge-sector">S--</span>
-            </div>
             <h3>RPM</h3>
             <canvas id="rpmChart"></canvas>
         </div>
