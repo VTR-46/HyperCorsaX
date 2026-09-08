@@ -91,6 +91,9 @@ const suspensionChart = new Chart(ctxSuspension, {
 
 // Repopula gráficos do buffer na inicialização
 function repopulateChartsFromBuffer() {
+    [wearChart, pedalsChart, suspensionChart].forEach((chart) => {
+        chart.data.datasets.forEach((dataset) => { dataset.data.length = 0; });
+    });
     const history = sharedTelemetryBuffer.getAll();
     if (history.length === 0) return;
 
@@ -446,10 +449,13 @@ ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
     if (data.type) {
+        if (window.consumeTelemetryHistory) window.consumeTelemetryHistory(data);
         if (window.consumeLapMessage) window.consumeLapMessage(data);
         return;
     }
-    const t = (Date.now() - sharedStartTime) / 1000;
+    const t = data.serverTimestamp
+        ? (data.serverTimestamp - sharedStartTime) / 1000
+        : (Date.now() - sharedStartTime) / 1000;
     
     checkSessionRestart(t);
     data.t = t;
@@ -464,6 +470,8 @@ ws.onmessage = function (event) {
         window.checkLapRecordTrigger(data);
     }
 
+    if (!shouldUpdatePanel(t, 'control')) return;
+
     // 1. Atualiza Arrays dos Gráficos
     const speedData = wearChart.data.datasets[0].data;
     const gasData = pedalsChart.data.datasets[0].data;
@@ -474,14 +482,18 @@ ws.onmessage = function (event) {
     const susRLData = suspensionChart.data.datasets[2].data;
     const susRRData = suspensionChart.data.datasets[3].data;
 
-    speedData.push({ x: t, y: data.speed });
-    gasData.push({ x: t, y: data.gas });
-    brakeData.push({ x: t, y: data.brake });
-    
-    susFLData.push({ x: t, y: data.suspensionTravelFL * 100});
-    susFRData.push({ x: t, y: data.suspensionTravelFR * 100});
-    susRLData.push({ x: t, y: data.suspensionTravelRL * 100});
-    susRRData.push({ x: t, y: data.suspensionTravelRR * 100 });
+    if (shouldAppendChartSample(t, 'control')) {
+        speedData.push({ x: t, y: data.speed });
+        gasData.push({ x: t, y: data.gas });
+        brakeData.push({ x: t, y: data.brake });
+    }
+
+    if (shouldAppendChartSample(t, 'control-suspension')) {
+        susFLData.push({ x: t, y: data.suspensionTravelFL * 100});
+        susFRData.push({ x: t, y: data.suspensionTravelFR * 100});
+        susRLData.push({ x: t, y: data.suspensionTravelRL * 100});
+        susRRData.push({ x: t, y: data.suspensionTravelRR * 100 });
+    }
 
     // 2. Limpeza de Memória: agora usa MAX_HISTORICO
     const tempoLimite = t - MAX_HISTORICO;
@@ -547,9 +559,7 @@ ws.onmessage = function (event) {
         suspensionChart.annotVersion = syncChartAnnotations(suspensionChart, suspensionChart.annotVersion);
     }
 
-    wearChart.update('none');
-    pedalsChart.update('none');
-    suspensionChart.update('none');
+    scheduleChartUpdates([wearChart, pedalsChart, suspensionChart]);
 };
 
 ws.onopen = () => {
@@ -565,5 +575,6 @@ ws.onclose = () => {
 
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
 
+window.addEventListener('hcx:telemetry-history', repopulateChartsFromBuffer);
 repopulateChartsFromBuffer();
 

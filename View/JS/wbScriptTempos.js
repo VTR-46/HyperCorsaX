@@ -423,6 +423,7 @@ window.addEventListener('hcx:lap-message', (event) => {
         catch (e) { console.error('[Tempos] JSON inválido:', e); return; }
 
         if (data.type) {
+            if (window.consumeTelemetryHistory) window.consumeTelemetryHistory(data);
             if (window.consumeLapMessage) window.consumeLapMessage(data);
             return;
         }
@@ -430,6 +431,9 @@ window.addEventListener('hcx:lap-message', (event) => {
         // Atualiza o recorder se estiver gravando
         if (window.updateRecorderData) window.updateRecorderData(data);
         if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
+
+        const panelTime = (Date.now() - sharedStartTime) / 1000;
+        if (!shouldUpdatePanel(panelTime, 'tempos')) return;
         
         try { updateCurrentPanel(data); }
         catch (err) { console.error('[Tempos] Erro ao atualizar painel:', err); }

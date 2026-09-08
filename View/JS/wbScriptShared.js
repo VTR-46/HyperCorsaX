@@ -1,5 +1,6 @@
 const JANELA_VISIVEL = 20; // 20 segundos visíveis na tela
 const MAX_HISTORICO = 600; // 10 minutos de histórico
+const BUFFER_SAMPLE_INTERVAL = 0.05; // No máximo 20 amostras/s no histórico do painel
 
 class TelemetryBuffer {
     constructor() {
@@ -7,6 +8,8 @@ class TelemetryBuffer {
         this.annotations = [];
         this.lastSave = 0;
         this.annotVersion = 0;
+        this.lastBufferedTime = -Infinity;
+        this.saveTimer = 0;
         this.loadFromStorage();
     }
 
@@ -30,7 +33,13 @@ class TelemetryBuffer {
             }
         }
 
-        this.buffer.push(packet);
+        if (packet.t - this.lastBufferedTime >= BUFFER_SAMPLE_INTERVAL) {
+            this.buffer.push(packet);
+            this.lastBufferedTime = packet.t;
+        }
+
+        if (this.buffer.length === 0) return;
+
         // Limita o histórico ao MAX_HISTORICO
         const maxTime = this.buffer[this.buffer.length - 1].t;
         const limitTime = maxTime - MAX_HISTORICO;
@@ -55,6 +64,32 @@ class TelemetryBuffer {
         return this.buffer;
     }
 
+    mergeHistory(packets) {
+        if (!Array.isArray(packets) || packets.length === 0) return;
+
+        const known = new Set(this.buffer
+            .map((packet) => packet.serverTimestamp)
+            .filter((timestamp) => timestamp !== undefined));
+
+        packets.forEach((packet) => {
+            if (!packet || packet.serverTimestamp === undefined || known.has(packet.serverTimestamp)) return;
+            const copy = { ...packet, t: (packet.serverTimestamp - sharedStartTime) / 1000 };
+            this.buffer.push(copy);
+            known.add(packet.serverTimestamp);
+        });
+
+        this.buffer.sort((left, right) => left.t - right.t);
+        const latestTime = this.buffer[this.buffer.length - 1]?.t;
+        if (latestTime === undefined) return;
+
+        const limitTime = latestTime - MAX_HISTORICO;
+        const firstValid = this.buffer.findIndex((packet) => packet.t >= limitTime);
+        if (firstValid > 0) this.buffer.splice(0, firstValid);
+        this.lastBufferedTime = this.buffer[this.buffer.length - 1].t;
+        this.saveToStorage();
+        window.dispatchEvent(new CustomEvent('hcx:telemetry-history'));
+    }
+
     loadFromStorage() {
         try {
             const data = sessionStorage.getItem('hcx_telemetry_buffer');
@@ -62,6 +97,9 @@ class TelemetryBuffer {
                 const parsed = JSON.parse(data);
                 this.buffer = parsed.buffer || [];
                 this.annotations = parsed.annotations || [];
+                this.lastBufferedTime = this.buffer.length > 0
+                    ? this.buffer[this.buffer.length - 1].t
+                    : -Infinity;
                 console.log(`[TelemetryBuffer] Loaded ${this.buffer.length} packets from history.`);
             }
         } catch (e) {
@@ -71,17 +109,25 @@ class TelemetryBuffer {
         }
     }
 
-    saveToStorage() {
+    saveToStorage(force = false) {
         try {
             const now = Date.now();
-            if (now - this.lastSave > 500) {
-                const data = {
-                    buffer: this.buffer,
-                    annotations: this.annotations
-                };
-                sessionStorage.setItem('hcx_telemetry_buffer', JSON.stringify(data));
-                this.lastSave = now;
+            if (!force && (this.saveTimer || now - this.lastSave <= 10000)) return;
+
+            if (!force) {
+                this.saveTimer = setTimeout(() => {
+                    this.saveTimer = 0;
+                    this.saveToStorage(true);
+                }, 0);
+                return;
             }
+
+            const data = {
+                buffer: this.buffer,
+                annotations: this.annotations
+            };
+            sessionStorage.setItem('hcx_telemetry_buffer', JSON.stringify(data));
+            this.lastSave = Date.now();
         } catch (e) {
             // Em caso de cota excedida (embora 600s raramente exceda 5MB se compactado)
             console.error('[TelemetryBuffer] Erro ao salvar buffer (quota?):', e);
@@ -97,6 +143,51 @@ class TelemetryBuffer {
 }
 
 const sharedTelemetryBuffer = new TelemetryBuffer();
+
+window.consumeTelemetryHistory = function (message) {
+    if (!message || message.type !== 'telemetry_history') return false;
+    sharedTelemetryBuffer.mergeHistory(message.packets);
+    return true;
+};
+
+window.addEventListener('beforeunload', () => {
+    sharedTelemetryBuffer.saveToStorage(true);
+});
+
+let chartUpdateFrame = 0;
+const chartSampleTimes = Object.create(null);
+const panelUpdateTimes = Object.create(null);
+
+function shouldAppendChartSample(time, chartKey) {
+    const lastTime = chartSampleTimes[chartKey];
+    if (lastTime !== undefined && time - lastTime < 0.05) return false;
+
+    chartSampleTimes[chartKey] = time;
+    return true;
+}
+
+function shouldUpdatePanel(time, panelKey) {
+    const lastTime = panelUpdateTimes[panelKey];
+    if (lastTime !== undefined && time - lastTime < 0.05) return false;
+
+    panelUpdateTimes[panelKey] = time;
+    return true;
+}
+
+function scheduleChartUpdates(charts) {
+    if (chartUpdateFrame) return;
+
+    const update = () => {
+        chartUpdateFrame = 0;
+        charts.forEach((chart) => chart.update('none'));
+    };
+
+    if (typeof requestAnimationFrame === 'function') {
+        chartUpdateFrame = requestAnimationFrame(update);
+    } else {
+        chartUpdateFrame = setTimeout(update, 16);
+    }
+}
 
 function updateSectorBadge(data) {
     const badgeLap = document.getElementById('badge-lap');

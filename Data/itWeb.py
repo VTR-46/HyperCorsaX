@@ -2,6 +2,7 @@ import socket
 import json
 import asyncio
 import time
+from collections import deque
 import websockets
 
 HOST_AC = 'localhost'
@@ -9,6 +10,8 @@ PORT_AC = 5000
 
 connected_clients = set()
 latest_telemetry_json = None
+telemetry_history = deque(maxlen=6000)
+last_history_sample_at = 0.0
 
 
 def lap_str_to_ms(value):
@@ -261,7 +264,7 @@ def parse_telemetry_line(linha):
     }
 
 async def socket_receiver_loop():
-    global latest_telemetry_json
+    global latest_telemetry_json, last_history_sample_at
     while True:
         sock = None
         # Conexão / reconexão com readT.exe
@@ -294,6 +297,8 @@ async def socket_receiver_loop():
 
                     payload = parse_telemetry_line(linha)
                     if payload:
+                        server_timestamp = round(time.time() * 1000)
+                        payload["serverTimestamp"] = server_timestamp
                         msg = json.dumps(payload)
                         latest_telemetry_json = msg
                         if connected_clients:
@@ -302,9 +307,16 @@ async def socket_receiver_loop():
                         previous_session_id = lap_tracker.session_id
                         lap_event = lap_tracker.ingest(payload)
                         if lap_tracker.session_id != previous_session_id:
+                            telemetry_history.clear()
+                            last_history_sample_at = 0.0
                             lap_message = lap_tracker.state_message()
                         else:
                             lap_message = lap_event
+
+                        if server_timestamp - last_history_sample_at >= 100:
+                            telemetry_history.append(payload.copy())
+                            last_history_sample_at = server_timestamp
+
                         if lap_message and connected_clients:
                             lap_msg = json.dumps(lap_message)
                             await asyncio.gather(*[client.send(lap_msg) for client in list(connected_clients)], return_exceptions=True)
@@ -324,6 +336,14 @@ async def ws_handler(websocket):
 
     try:
         await websocket.send(json.dumps(lap_tracker.state_message()))
+    except Exception:
+        pass
+
+    try:
+        await websocket.send(json.dumps({
+            "type": "telemetry_history",
+            "packets": list(telemetry_history),
+        }))
     except Exception:
         pass
     

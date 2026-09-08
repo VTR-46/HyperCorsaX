@@ -115,6 +115,9 @@ const brakeChart = new Chart(ctxBrakeTemp, {
 });
 
 function repopulateChartsFromBuffer() {
+    [wearChart, tempChart, pressureChart, brakeChart].forEach((chart) => {
+        chart.data.datasets.forEach((dataset) => { dataset.data.length = 0; });
+    });
     const history = sharedTelemetryBuffer.getAll();
     if (history.length === 0) return;
 
@@ -377,18 +380,22 @@ ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
     if (data.type) {
+        if (window.consumeTelemetryHistory) window.consumeTelemetryHistory(data);
         if (window.consumeLapMessage) window.consumeLapMessage(data);
         return;
     }
     // Feed recorder for comparison feature
     if (window.updateRecorderData) window.updateRecorderData(data);
     if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
-    const t = (Date.now() - sharedStartTime) / 1000;
+    const t = data.serverTimestamp
+        ? (data.serverTimestamp - sharedStartTime) / 1000
+        : (Date.now() - sharedStartTime) / 1000;
     checkSessionRestart(t);
     data.t = t;
     sharedTelemetryBuffer.push(data);
     updateSectorBadge(data);
 
+    if (!shouldUpdatePanel(t, 'wheels')) return;
 
 
     // 3. Leituras de Pneu e Normalização
@@ -480,31 +487,34 @@ ws.onmessage = function (event) {
    // console.log(w1);
     //console.log('a'+averageTyreWear(w1, w2, w3, w4) );
 
-    FLWearData.push({ x: t, y: getNormalizedWear(grip_w1, 'FL') });
-    FRWearData.push({ x: t, y: getNormalizedWear(grip_w2, 'FR') });
-    RLWearData.push({ x: t, y: getNormalizedWear(grip_w3, 'RL') });
-    RRWearData.push({ x: t, y: getNormalizedWear(grip_w4, 'RR') });
-    avarageWearData.push({ x: t, y: averageTyreWear(w1, w2, w3, w4)  });
+    if (shouldAppendChartSample(t, 'wheels')) {
+        FLWearData.push({ x: t, y: getNormalizedWear(grip_w1, 'FL') });
+        FRWearData.push({ x: t, y: getNormalizedWear(grip_w2, 'FR') });
+        RLWearData.push({ x: t, y: getNormalizedWear(grip_w3, 'RL') });
+        RRWearData.push({ x: t, y: getNormalizedWear(grip_w4, 'RR') });
+        avarageWearData.push({ x: t, y: averageTyreWear(w1, w2, w3, w4)  });
 
-    FRData.push({ x: t, y: data.tyreFL });
-    FLData.push({ x: t, y: data.tyreFR });
-    RLData.push({ x: t, y: data.tyreRL });
-    RRData.push({ x: t, y: data.tyreRR });
+        FRData.push({ x: t, y: data.tyreFL });
+        FLData.push({ x: t, y: data.tyreFR });
+        RLData.push({ x: t, y: data.tyreRL });
+        RRData.push({ x: t, y: data.tyreRR });
 
-    FLPressureData.push({ x: t, y: data.tyrePressureFL });
-    FRPressureData.push({ x: t, y: data.tyrePressureFR });
-    RLPressureData.push({ x: t, y: data.tyrePressureRL });
-    RRPressureData.push({ x: t, y: data.tyrePressureRR });
+        FLPressureData.push({ x: t, y: data.tyrePressureFL });
+        FRPressureData.push({ x: t, y: data.tyrePressureFR });
+        RLPressureData.push({ x: t, y: data.tyrePressureRL });
+        RRPressureData.push({ x: t, y: data.tyrePressureRR });
 
-    FLBrakeTempData.push({ x: t, y: data.brakeFL });
-    FRBrakeTempData.push({ x: t, y: data.brakeFR });
-    RLBrakeTempData.push({ x: t, y: data.brakeRL });
-    RRBrakeTempData.push({ x: t, y: data.brakeRR });
+        FLBrakeTempData.push({ x: t, y: data.brakeFL });
+        FRBrakeTempData.push({ x: t, y: data.brakeFR });
+        RLBrakeTempData.push({ x: t, y: data.brakeRL });
+        RRBrakeTempData.push({ x: t, y: data.brakeRR });
+    }
 
     // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
     const tempoLimite = t - (janelaTempo + 5);
     while (FLWearData.length > 0 && FLWearData[0].x < tempoLimite) {
         FLWearData.shift();
+        avarageWearData.shift();
 
         FRData.shift();
         FLData.shift();
@@ -540,10 +550,7 @@ ws.onmessage = function (event) {
         brakeChart.annotVersion = syncChartAnnotations(brakeChart, brakeChart.annotVersion);
     }
 
-    wearChart.update('none');
-    tempChart.update('none');
-    pressureChart.update('none');
-    brakeChart.update('none');
+    scheduleChartUpdates([wearChart, tempChart, pressureChart, brakeChart]);
 };
 
 ws.onopen = () => {
@@ -559,5 +566,6 @@ ws.onclose = () => {
 
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
 
+window.addEventListener('hcx:telemetry-history', repopulateChartsFromBuffer);
 repopulateChartsFromBuffer();
 
