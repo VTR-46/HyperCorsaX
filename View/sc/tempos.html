@@ -25,6 +25,7 @@
         <div class="header-actions">
             <span id="lapRecordStatus" class="lap-record-status hidden"></span>
             <span id="t-ws-status" class="ws-status ws-off">● DESCONECTADO</span>
+            <button class="btn-clear" onclick="clearSession()">🗑 LIMPAR SESSÃO</button>
             <button id="btnLapRecord" class="btn-record" onclick="openLapModal()" title="Gravar telemetria por número de voltas">GRAVAR VOLTAS</button>  
             
         </div>
@@ -206,9 +207,10 @@
             <p class="tempos-empty-sub">Complete uma volta no Assetto Corsa para começar.</p>
         </div> -->
     </section>
-    <button class="btn-clear" onclick="clearSession()">🗑 LIMPAR SESSÃO</button>
+    
 
     <script src="../JS/recorder.js"></script>
+    <script src="../JS/wbScriptShared.js"></script>
     <script src="../JS/wbScriptTempos.js"></script>
 
     <!-- Esconde/exibe o estado vazio conforme a tabela tem conteúdo -->

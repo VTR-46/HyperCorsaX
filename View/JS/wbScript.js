@@ -409,6 +409,10 @@ ws.onmessage = function (event) {
         console.error('JSON inválido do WebSocket:', e);
         return;
     }
+    if (data.type) {
+        if (window.consumeLapMessage) window.consumeLapMessage(data);
+        return;
+    }
     const t = (Date.now() - startTime) / 1000;
 
     // Atualiza o recorder se estiver gravando
@@ -419,7 +423,6 @@ ws.onmessage = function (event) {
     if (window.checkLapRecordTrigger) {
         window.checkLapRecordTrigger(data);
     }
-
     // 1. Atualiza Gráficos (se existirem na página)
     if (speedChart && pedalsChart) {
         const speedData = speedChart.data.datasets[0].data;
@@ -521,3 +524,5 @@ ws.onclose = () => {
 };
 
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+

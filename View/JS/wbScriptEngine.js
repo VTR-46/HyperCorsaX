@@ -1,6 +1,4 @@
 let autoScroll = true;
-const janelaTempo = 6; // Quantos segundos mostrar na tela por padrão
-const startTime = Date.now();
 
 // Quando o usuário interagir com o gráfico (arrastar/zoom) desliga o Auto-Scroll
 const pausarAutoScroll = () => {
@@ -76,6 +74,32 @@ const pedalsChart = new Chart(ctxPedals, {
     options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: -0.1, max: 1.1, ...commonOptions.scales.y } } }
 });
 
+// Repopula gráficos do buffer na inicialização
+function repopulateChartsFromBuffer() {
+    const history = sharedTelemetryBuffer.getAll();
+    if (history.length === 0) return;
+
+    const speedData = rpmChart.data.datasets[0].data;
+    const gasData = pedalsChart.data.datasets[0].data;
+    const brakeData = pedalsChart.data.datasets[1].data;
+
+    history.forEach(packet => {
+        const t = packet.t;
+        speedData.push({ x: t, y: packet.rpm });
+        gasData.push({ x: t, y: packet.gas });
+        brakeData.push({ x: t, y: packet.brake });
+    });
+
+    if (typeof syncChartAnnotations !== 'undefined') {
+        rpmChart.annotVersion = syncChartAnnotations(rpmChart, -1);
+        pedalsChart.annotVersion = syncChartAnnotations(pedalsChart, -1);
+    }
+
+    rpmChart.update();
+    pedalsChart.update();
+}
+
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const hexToRgb = (hex) => {
@@ -150,10 +174,20 @@ const ws = new WebSocket('ws://localhost:8765');
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
+    if (data.type) {
+        if (window.consumeLapMessage) window.consumeLapMessage(data);
+        return;
+    }
     // Feed recorder for comparison feature
     if (window.updateRecorderData) window.updateRecorderData(data);
     if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
-    const t = (Date.now() - startTime) / 1000;
+    
+    const t = (Date.now() - sharedStartTime) / 1000;
+    
+    checkSessionRestart(t);
+    data.t = t;
+    sharedTelemetryBuffer.push(data);
+    updateSectorBadge(data);
 
     // 1. Atualiza Arrays dos Gráficos
     const speedData = rpmChart.data.datasets[0].data;
@@ -164,8 +198,8 @@ ws.onmessage = function (event) {
     gasData.push({ x: t, y: data.gas });
     brakeData.push({ x: t, y: data.brake });
 
-    // 2. Limpeza de Memória (Mantém apenas os últimos ~20 segundos no array para não crashar o navegador)
-    const tempoLimite = t - (janelaTempo + 5); 
+    // 2. Limpeza de Memória: usa MAX_HISTORICO
+    const tempoLimite = t - MAX_HISTORICO; 
     while (speedData.length > 0 && speedData[0].x < tempoLimite) {
         speedData.shift();
         gasData.shift();
@@ -173,7 +207,7 @@ ws.onmessage = function (event) {
     }
     // 5. Scroll e Update dos Gráficos
     if (autoScroll) {
-        const minX = Math.max(0, t - janelaTempo); // Mostra só os últimos 15 segundos
+        const minX = Math.max(0, t - JANELA_VISIVEL);
 
         rpmChart.options.scales.x.min = minX;
         rpmChart.options.scales.x.max = t;
@@ -184,6 +218,11 @@ ws.onmessage = function (event) {
 
         updateMeter('fuelFill', 'fuelValue', data.fuel ?? 0, 40, 130, ' L', '#0004FF', '#FF0000');
     updateMeter('ersFill', 'ersValue', ((data.ersPower ?? 0) * 100), 0, 100, ' %', '#FF0000', '#0004FF');
+
+    if (typeof syncChartAnnotations !== 'undefined') {
+        rpmChart.annotVersion = syncChartAnnotations(rpmChart, rpmChart.annotVersion);
+        pedalsChart.annotVersion = syncChartAnnotations(pedalsChart, pedalsChart.annotVersion);
+    }
 
     rpmChart.update('none');
     pedalsChart.update('none');
@@ -201,3 +240,6 @@ ws.onclose = () => {
 };
 
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+
+repopulateChartsFromBuffer();
+

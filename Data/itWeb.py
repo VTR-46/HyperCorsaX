@@ -10,6 +10,119 @@ PORT_AC = 5000
 connected_clients = set()
 latest_telemetry_json = None
 
+
+def lap_str_to_ms(value):
+    if not value or value == '--:--.---':
+        return -1
+    try:
+        minutes, seconds = str(value).split(':', 1)
+        return int(minutes) * 60000 + round(float(seconds) * 1000)
+    except (ValueError, TypeError):
+        return -1
+
+
+class LapTracker:
+    """Calcula voltas uma vez para todos os clientes WebSocket."""
+
+    def __init__(self):
+        self.history = []
+        self.session_id = 1
+        self.prev_sector = -1
+        self.prev_completed_laps = -1
+        self.prev_i_last_time = -1
+        self.captured_s1_ms = -1
+        self.captured_s2_ms = -1
+        self.split_at_s1_ms = -1
+
+    def reset(self):
+        self.history.clear()
+        self.session_id += 1
+        self.prev_sector = -1
+        self.prev_completed_laps = -1
+        self.prev_i_last_time = -1
+        self.captured_s1_ms = -1
+        self.captured_s2_ms = -1
+        self.split_at_s1_ms = -1
+
+    def state_message(self):
+        return {
+            "type": "lap_state",
+            "sessionId": self.session_id,
+            "history": self.history,
+        }
+
+    def ingest(self, data):
+        sector = data.get("currentSector", 0)
+        completed_laps = data.get("completedLaps", 0)
+        i_last_time = data.get("iLastTime", -1)
+        last_sector_ms = data.get("lastSectorTime", -1)
+        split_ms = lap_str_to_ms(data.get("split"))
+
+        if self.prev_sector == -1:
+            self.prev_sector = sector
+            self.prev_completed_laps = completed_laps
+            self.prev_i_last_time = i_last_time
+            return None
+
+        if completed_laps == 0 and self.prev_completed_laps > 0:
+            self.reset()
+            self.prev_sector = sector
+            self.prev_completed_laps = completed_laps
+            self.prev_i_last_time = i_last_time
+            return None
+
+        if sector != self.prev_sector:
+            if self.prev_sector == 0 and sector == 1:
+                self.captured_s1_ms = last_sector_ms if last_sector_ms > 0 else split_ms
+                self.split_at_s1_ms = split_ms
+            elif self.prev_sector == 1 and sector == 2:
+                if last_sector_ms > 0:
+                    self.captured_s2_ms = last_sector_ms
+                elif split_ms > 0 and self.split_at_s1_ms > 0:
+                    self.captured_s2_ms = split_ms - self.split_at_s1_ms
+            self.prev_sector = sector
+
+        lap_completed = (
+            (i_last_time > 0 and i_last_time != self.prev_i_last_time)
+            or (completed_laps > self.prev_completed_laps and self.prev_completed_laps >= 0)
+        )
+
+        event = None
+        if lap_completed:
+            total_ms = i_last_time if i_last_time > 0 else lap_str_to_ms(data.get("lastTime"))
+            if total_ms > 0 and self.captured_s1_ms > 0 and self.captured_s2_ms > 0:
+                s3_ms = total_ms - self.captured_s1_ms - self.captured_s2_ms
+                if s3_ms < 0:
+                    s3_ms = -1
+            else:
+                s3_ms = last_sector_ms if last_sector_ms > 0 else -1
+
+            lap_number = completed_laps if completed_laps > 0 else len(self.history) + 1
+            entry = {
+                "lap": lap_number,
+                "s1Ms": self.captured_s1_ms,
+                "s2Ms": self.captured_s2_ms,
+                "s3Ms": s3_ms,
+                "totalMs": total_ms,
+            }
+            self.history.append(entry)
+            event = {
+                "type": "lap_completed",
+                "sessionId": self.session_id,
+                "lapId": f"{self.session_id}:{lap_number}:{total_ms}",
+                "lap": entry,
+            }
+            self.captured_s1_ms = -1
+            self.captured_s2_ms = -1
+            self.split_at_s1_ms = -1
+
+        self.prev_i_last_time = i_last_time
+        self.prev_completed_laps = completed_laps
+        return event
+
+
+lap_tracker = LapTracker()
+
 def to_float(val, default=0.0):
     try:
         s = str(val).strip()
@@ -186,6 +299,16 @@ async def socket_receiver_loop():
                         if connected_clients:
                             await asyncio.gather(*[client.send(msg) for client in list(connected_clients)], return_exceptions=True)
 
+                        previous_session_id = lap_tracker.session_id
+                        lap_event = lap_tracker.ingest(payload)
+                        if lap_tracker.session_id != previous_session_id:
+                            lap_message = lap_tracker.state_message()
+                        else:
+                            lap_message = lap_event
+                        if lap_message and connected_clients:
+                            lap_msg = json.dumps(lap_message)
+                            await asyncio.gather(*[client.send(lap_msg) for client in list(connected_clients)], return_exceptions=True)
+
             except BlockingIOError:
                 pass
             except Exception as e:
@@ -198,6 +321,11 @@ async def socket_receiver_loop():
 async def ws_handler(websocket):
     connected_clients.add(websocket)
     print(f"[WebSocket] Cliente conectado! Total: {len(connected_clients)}")
+
+    try:
+        await websocket.send(json.dumps(lap_tracker.state_message()))
+    except Exception:
+        pass
     
     # Envia imediatamente o último dado disponível
     if latest_telemetry_json:

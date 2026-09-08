@@ -333,6 +333,10 @@ const ws = new WebSocket('ws://localhost:8765');
 ws.onmessage = function (event) {
     // console.log("WS MSG", event.data); // Desativado para melhor performance
     const data = JSON.parse(event.data);
+    if (data.type) {
+        if (window.consumeLapMessage) window.consumeLapMessage(data);
+        return;
+    }
     // Feed recorder for comparison feature
     if (window.updateRecorderData) window.updateRecorderData(data);
     if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
@@ -500,3 +504,4 @@ ws.onclose = () => {
 };
 
 ws.onerror = (e) => console.error("Erro no WebSocket:", e);
+

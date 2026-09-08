@@ -439,7 +439,12 @@ const commonChartOptions = {
     }
 };
 
-function createChart(canvasId, config) {
+function createChart(canvasId, config, alignedData = null) {
+    if (alignedData && alignedData.annotations) {
+        if (!config.options) config.options = {};
+        if (!config.options.plugins) config.options.plugins = {};
+        config.options.plugins.annotation = { annotations: alignedData.annotations };
+    }
     console.log('[Compare] Creating chart:', canvasId);
     const ctx = document.getElementById(canvasId).getContext('2d');
     const chart = new Chart(ctx, config);
@@ -457,7 +462,7 @@ function createSpeedChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 350 } } }
-    });
+    }, data);
 }
 
 function createRPMChart(data) {
@@ -470,7 +475,7 @@ function createRPMChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 10000 } } }
-    });
+    }, data);
 }
 
 function createPedalsChart(data) {
@@ -485,7 +490,7 @@ function createPedalsChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: -0.1, max: 1.1 } } }
-    });
+    }, data);
 }
 
 function createTyreTempChart(data) {
@@ -504,7 +509,7 @@ function createTyreTempChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 120 } } }
-    });
+    }, data);
 }
 
 function createTyrePressureChart(data) {
@@ -523,7 +528,7 @@ function createTyrePressureChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 50 } } }
-    });
+    }, data);
 }
 
 function createBrakeTempChart(data) {
@@ -542,7 +547,7 @@ function createBrakeTempChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 1000 } } }
-    });
+    }, data);
 }
 
 function createDeltaSpeedChart(data) {
@@ -555,7 +560,7 @@ function createDeltaSpeedChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -50, suggestedMax: 50 } } }
-    });
+    }, data);
 }
 
 function createFuelChart(data) {
@@ -568,7 +573,7 @@ function createFuelChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: 0, suggestedMax: 120 } } }
-    });
+    }, data);
 }
 
 function createERSChart(data) {
@@ -581,7 +586,7 @@ function createERSChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 100 } } }
-    });
+    }, data);
 }
 
 function createSteerChart(data) {
@@ -594,7 +599,7 @@ function createSteerChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -180, suggestedMax: 180 } } }
-    });
+    }, data);
 }
 
 function createTyreWearChart(data) {
@@ -613,7 +618,7 @@ function createTyreWearChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 100 } } }
-    });
+    }, data);
 }
 
 // Gear chart (re-added since it was replaced)
@@ -627,7 +632,7 @@ function createGearChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, min: 0, max: 8, stepSize: 1 } } }
-    });
+    }, data);
 }
 
 function createGForceChart(data) {
@@ -644,7 +649,7 @@ function createGForceChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -3, suggestedMax: 3 } } }
-    });
+    }, data);
 }
 
 function createSuspensionChart(data) {
@@ -663,5 +668,5 @@ function createSuspensionChart(data) {
             ]
         },
         options: { ...commonChartOptions, scales: { ...commonChartOptions.scales, y: { ...commonChartOptions.scales.y, suggestedMin: -2, suggestedMax: 30 } } }
-    });
+    }, data);
 }

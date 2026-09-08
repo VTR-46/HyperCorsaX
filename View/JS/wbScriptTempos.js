@@ -337,6 +337,27 @@ function flashNewLap(idx) {
     setTimeout(() => tr.classList.remove('lap-row-flash'), 1500);
 }
 
+function syncLapHistoryFromServer(message) {
+    if (message.type === 'lap_state') {
+        lapHistory.length = 0;
+        lapHistory.push(...(message.history || []));
+    } else if (message.type === 'lap_completed' && message.lap) {
+        const exists = lapHistory.some((entry) =>
+            entry.lap === message.lap.lap && entry.totalMs === message.lap.totalMs
+        );
+        if (!exists) lapHistory.push(message.lap);
+    }
+
+    bestAbsMs.s1 = bestAbsMs.s2 = bestAbsMs.s3 = bestAbsMs.total = -1;
+    lapHistory.forEach((entry) => {
+        if (entry.s1Ms > 0 && (bestAbsMs.s1 < 0 || entry.s1Ms < bestAbsMs.s1)) bestAbsMs.s1 = entry.s1Ms;
+        if (entry.s2Ms > 0 && (bestAbsMs.s2 < 0 || entry.s2Ms < bestAbsMs.s2)) bestAbsMs.s2 = entry.s2Ms;
+        if (entry.s3Ms > 0 && (bestAbsMs.s3 < 0 || entry.s3Ms < bestAbsMs.s3)) bestAbsMs.s3 = entry.s3Ms;
+        if (entry.totalMs > 0 && (bestAbsMs.total < 0 || entry.totalMs < bestAbsMs.total)) bestAbsMs.total = entry.totalMs;
+    });
+    renderTable();
+}
+
 // ────────────────────────────────────────────────────────────
 //  Helpers
 // ────────────────────────────────────────────────────────────
@@ -372,6 +393,9 @@ window.clearSession = function () {
 //  Inicialização: carrega dados salvos antes de conectar o WS
 // ────────────────────────────────────────────────────────────
 loadLapData();
+window.addEventListener('hcx:lap-message', (event) => {
+    syncLapHistoryFromServer(event.detail);
+});
 
 // ────────────────────────────────────────────────────────────
 //  WebSocket (com reconexão automática)
@@ -397,12 +421,17 @@ loadLapData();
         let data;
         try { data = JSON.parse(event.data); }
         catch (e) { console.error('[Tempos] JSON inválido:', e); return; }
+
+        if (data.type) {
+            if (window.consumeLapMessage) window.consumeLapMessage(data);
+            return;
+        }
         
         // Atualiza o recorder se estiver gravando
         if (window.updateRecorderData) window.updateRecorderData(data);
         if (window.checkLapRecordTrigger) window.checkLapRecordTrigger(data);
         
-        try { processData(data); }
-        catch (err) { console.error('[Tempos] Erro processData:', err); }
+        try { updateCurrentPanel(data); }
+        catch (err) { console.error('[Tempos] Erro ao atualizar painel:', err); }
     };
 })();

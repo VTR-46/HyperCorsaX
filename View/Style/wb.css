@@ -337,6 +337,7 @@ body {
     width: 100%;
     box-sizing: border-box;
     min-width: 0;
+    position: relative;
 }
 
 .meter-panel {
@@ -1924,3 +1925,40 @@ body {
     .info-grid { grid-template-columns: repeat(2, 1fr); }
     .flag-buttons { flex-direction: column; }
 }
+
+/* Badge de Setor e Volta */
+.lap-sector-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ddd;
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.badge-sector {
+    padding-left: 8px;
+    border-left: 1px solid #555;
+}
+
+.badge-sector.s1 {
+    color: #ffffff;
+}
+
+.badge-sector.s2 {
+    color: #FFD700;
+}
+
+.badge-sector.s3 {
+    color: #00FF88;
+}
+
